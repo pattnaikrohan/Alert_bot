@@ -1,0 +1,64 @@
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5050
+Press CTRL+C to quit
+127.0.0.1 - - [12/Oct/2026 15:46:34] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:46:37] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:46:39] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 401 -
+127.0.0.1 - - [12/Oct/2026 15:46:50] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:46:50] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:46:51] "POST /api/auth/start HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:46:53] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:46:55] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:46:57] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:46:59] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:02] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:04] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:06] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:08] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:10] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:12] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:13] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:15] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:17] "GET /api/pipelines HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:17] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:26] "GET /api/pipeline-runs?pipeline=DEV-MULTIFILE&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:29] "GET /api/pipeline-runs?pipeline=DEV-SC-TIER_CUSTOM_MANIFEST_BL&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:32] "GET /api/pipeline-runs?pipeline=DEV-SFA-INGESTION&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:38] "GET /api/pipeline-runs?pipeline=PL_DATA_ADLS-devcsdwfiles-input_To_SF-psaicsdw&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:40] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:44] "GET /api/pipeline-runs/83db0af8-4c2e-4b11-bad1-596d8e1a2e8c/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:45] "GET /api/pipeline-runs/83db0af8-4c2e-4b11-bad1-596d8e1a2e8c/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:46] "GET /api/pipeline-runs/33c90a55-c6c7-4fab-8dbf-bc599b10ce1d/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:47] "GET /api/pipeline-runs/33c90a55-c6c7-4fab-8dbf-bc599b10ce1d/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:48] "GET /api/pipeline-runs/cda59521-0d49-428f-9cab-df88c33db0a4/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:48] "GET /api/pipeline-runs/cda59521-0d49-428f-9cab-df88c33db0a4/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:49] "GET /api/pipeline-runs/bd346a00-2a7f-4089-baa0-7e38f921d85c/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:49] "GET /api/pipeline-runs/bd346a00-2a7f-4089-baa0-7e38f921d85c/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:50] "GET /api/pipeline-runs/6319192c-35e5-427e-a7e8-d252d2e11f63/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:47:51] "GET /api/pipeline-runs/6319192c-35e5-427e-a7e8-d252d2e11f63/tree?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:48:10] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:48:21] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:48:27] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=30 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:48:57] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=30 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:49:27] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=30 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:49:57] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=30 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:50:27] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=30 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:50:57] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=30 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:51:28] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=30 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:59:52] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:59:52] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:59:54] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=30 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:59:54] "GET /api/pipelines HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:59:54] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:59:58] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:59:58] "GET /api/auth/status HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:59:58] "GET /api/pipelines HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 15:59:58] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 16:00:30] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 16:00:59] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 16:01:29] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 16:01:59] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 16:02:29] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2026 16:03:00] "GET /api/pipeline-runs?pipeline=DEV-SG-TERMINAL-CSV&days=7 HTTP/1.1" 200 -

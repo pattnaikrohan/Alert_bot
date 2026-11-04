@@ -1,0 +1,20 @@
+# Found in Azure with jnanaranjan.pradhan@cozentus.com's sign-in on 2026-10-28 12:23 UTC. The bot never overwrites this file:
+# edit it freely (e.g. add `pipelines:` / `exclude:`, a Teams flow_url, morning_report: "08:00").
+project: adf-adfpipelinerohan
+display_name: adfpipelinerohan (Data Factory)
+description: Azure Data Factory adfpipelinerohan (resource group synapse_13_oct_2026,
+  subscription a1f16cb3-28dc-4a24-b1e8-c1ade4ee13fd). Found in Azure automatically;
+  read-only.
+kind: adf
+schedule: '*/10 * * * *'
+pipeline:
+  type: adf
+  subscription_id: a1f16cb3-28dc-4a24-b1e8-c1ade4ee13fd
+  resource_group: synapse_13_oct_2026
+  resource_id: /subscriptions/a1f16cb3-28dc-4a24-b1e8-c1ade4ee13fd/resourcegroups/synapse_13_oct_2026/providers/microsoft.datafactory/factories/adfpipelinerohan
+  auth: signed_in_users
+  factory: adfpipelinerohan
+alerts:
+  notifier: power_automate
+  flow_url: ''
+  morning_report: ''

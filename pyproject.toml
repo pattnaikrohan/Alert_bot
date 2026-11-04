@@ -1,0 +1,66 @@
+[project]
+name = "alertbot"
+version = "0.1.0"
+description = "AI data reliability bot: watches trigger-table driven scraping pipelines, explains incidents, and alerts each project's team."
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "sqlalchemy>=2.0.36,<2.1",  # snowflake-sqlalchemy does not support 2.1 yet
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "pyyaml>=6.0.2",
+    "httpx>=0.28",
+    "typer>=0.15",
+    "rich>=13.9",
+    "croniter>=5.0",
+    "tzdata>=2024.2",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pyjwt[crypto]>=2.10",
+]
+
+[project.optional-dependencies]
+# Real Azure connectors (ADF REST, Key Vault, Azure SQL). Not needed for the fake-data prototype.
+azure = [
+    "azure-identity>=1.19",
+    "azure-keyvault-secrets>=4.9",
+    "pyodbc>=5.2",
+]
+# AI investigator. Installed once a model is chosen and ai.enabled is flipped on.
+ai = [
+    "langgraph>=0.2.60",
+    "langchain>=0.3.13",
+]
+snowflake = [
+    "snowflake-connector-python>=3.12",
+    "snowflake-sqlalchemy>=1.7",
+]
+
+[project.scripts]
+alertbot = "alertbot.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/alertbot"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient`"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]

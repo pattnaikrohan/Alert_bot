@@ -1,0 +1,175 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# CSDW Risk Monitor: LIVE config, built from Risk_Monitor_Production_Monitoring_Matrix.xlsx.
+#
+# There is no ADF and no trigger table here: Function Apps, Snowflake tasks /
+# streams and manual scrapers write straight into DB_PROD tables. Each feed is
+# watched by its own schedule (missed runs), freshness, learned volume per run,
+# empty required fields, duplicates, schema changes and, when connected, the
+# producer's own telemetry (Snowflake TASK_HISTORY / Application Insights).
+#
+# Read-only: the bot only runs SELECTs (and TASK_HISTORY) with the role below.
+#
+# Every TODO is an assumption to confirm with the feed owners before go-live.
+# ──────────────────────────────────────────────────────────────────────────────
+project: csdw
+display_name: CSDW Risk Monitor
+description: Risk Monitor production feeds in Snowflake DB_PROD (news, Webster, WAHIS, food safety, carrier advisories, SWIC, tropical cyclones, SG Terminal).
+kind: feeds
+# TODO(timezone): the matrix gives run times without a zone ("4:00, 10:00"); only SG Terminal says UTC.
+# Feed schedules below are read in this zone. With every-6-hour feeds a wrong zone shifts when an alert
+# fires, not whether it fires.
+timezone: UTC
+schedule: "*/15 * * * *"                          # how often the bot checks
+# Paused until the Snowflake account details are in .env.live (SNOWFLAKE_ACCOUNT / SNOWFLAKE_USER).
+active: false
+
+sources:
+  - id: snowflake
+    type: snowflake
+    account: env://SNOWFLAKE_ACCOUNT              # e.g. abc12345.west-europe.azure (no .snowflakecomputing.com)
+    user: env://SNOWFLAKE_USER                    # pilot: Chinmoy's login; production: a key-pair service user
+    role: CSDW_PROD_RM
+    warehouse: RM_WH
+    database: DB_PROD
+    # externalbrowser = Microsoft sign-in (SSO) with Authenticator in a browser window; the token is cached so
+    # it is not asked again every cycle. Production: snowflake_jwt + private_key: kv://snowflake-alertbot-key
+    authenticator: externalbrowser
+    # TODO(ntz): zone of TIMESTAMP_NTZ values such as INSERT_DATETIME. Assumed UTC.
+    data_timezone: UTC
+
+feeds:
+  # 1 ── NEWS API (Function App prod-azf-newsapi-de) ─ ~1,300+ articles a day
+  - id: news_api
+    name: NEWS API
+    description: General news articles from the News API.
+    source: snowflake
+    table: DB_PROD.RAW_RISKMONITOR.NEWS_API
+    timestamp: INSERT_DATETIME
+    filter:
+      column: URL
+      # Same exclusions as the team's monitoring query. Note "%food%" also drops any general article whose URL
+      # contains "food"; that matches the query today, so volume baselines stay comparable.
+      exclude: ["%wkwebster%", "%wahis%", "%woah%", "%food%", "%fda%", "%efsa%", "%msc.com%", "%maersk.com%", "%chrobinson.com%"]
+    key: [URL]                                     # TODO(key): confirm URL is unique per article
+    required_fields: [URL]                         # TODO(fields): add TITLE / PUBLISHED_AT etc. once the columns are confirmed
+    schedule: "0 4,10,16,22 * * *"                 # "4 times (4:00, 10:00)" read as every 6 h
+    grace_minutes: 90
+    producer: { type: azure_function, name: prod-azf-newsapi-de, app_insights_app_id: "" }   # TODO(appinsights)
+
+  # 2 ── Webster (prod-azf-wkwebster)
+  - id: webster
+    name: Webster
+    source: snowflake
+    table: DB_PROD.RAW_RISKMONITOR.NEWS_API
+    timestamp: INSERT_DATETIME
+    filter: { column: URL, include: ["%wkwebster%"] }
+    key: [URL]
+    required_fields: [URL]
+    schedule: "0 0,6,12,18 * * *"                  # "4 times (12:00, 6:00)"
+    grace_minutes: 90
+    producer: { type: azure_function, name: prod-azf-wkwebster, app_insights_app_id: "" }
+
+  # 3 ── WAHIS / WOAH animal-health events (prod-azf-wahis)
+  - id: wahis
+    name: Wahis
+    source: snowflake
+    table: DB_PROD.RAW_RISKMONITOR.NEWS_API
+    timestamp: INSERT_DATETIME
+    filter: { column: URL, include: ["%wahis%", "%woah%"] }
+    key: [URL]
+    required_fields: [URL]
+    schedule: "0 0,6,12,18 * * *"
+    grace_minutes: 90
+    producer: { type: azure_function, name: prod-azf-wahis, app_insights_app_id: "" }
+
+  # 4 ── Food safety (prod-azf-foodsafety)
+  - id: foodsafety
+    name: Foodsafety
+    source: snowflake
+    table: DB_PROD.RAW_RISKMONITOR.NEWS_API
+    timestamp: INSERT_DATETIME
+    filter: { column: URL, include: ["%food%", "%fda%", "%efsa%"] }
+    key: [URL]
+    required_fields: [URL]
+    schedule: "0 0,6,12,18 * * *"
+    grace_minutes: 90
+    producer: { type: azure_function, name: prod-azf-foodsafety, app_insights_app_id: "" }
+
+  # 5 ── Carrier advisories: MSC, Maersk, CH Robinson (manual Python scrapers, weekly)
+  - id: carrier_advisories
+    name: Carrier advisories
+    description: msc_new_v1.py, maersk_new_v1.py, chrobinson_new_v1.py, run by hand.
+    source: snowflake
+    table: DB_PROD.RAW_RISKMONITOR.NEWS_API
+    timestamp: INSERT_DATETIME
+    filter: { column: URL, include: ["%msc.com%", "%maersk.com%", "%chrobinson.com%"] }
+    key: [URL]
+    required_fields: [URL]
+    schedule: "0 9 * * 1"                          # TODO(day): "Weekly"; only used for the staleness limit
+    stale_after_hours: 192                         # 8 days: a week plus a day of slack
+    producer: { type: manual }
+
+  # 6 ── Tropical cyclone positions (prod-azf-tropicalcyclone). Event-driven: no cyclone, no rows.
+  - id: cyclone_actual
+    name: Tropical cyclone
+    description: Actual positions. Rows only while a cyclone is active, so empty runs are normal.
+    source: snowflake
+    table: DB_PROD.RAW_RISKMONITOR.SWIC_TROPICAL_CYCLONE_ACTUAL_POSITIONS
+    # TODO(ingest-ts): DATE_TIME_IN_UTC is the observation time, not when the row was loaded. An ingestion
+    # column (e.g. INSERT_DATETIME) would let the bot tell a late run from a quiet season.
+    timestamp: DATE_TIME_IN_UTC
+    schedule: "0 0,6,12,18 * * *"
+    grace_minutes: 120
+    event_driven: true
+    stale_after_hours: 168                         # matches the team query's 7-day ATTENTION threshold
+    producer: { type: azure_function, name: prod-azf-tropicalcyclone, app_insights_app_id: "" }
+
+  # 7 ── SWIC CAP warnings (Snowflake task → notebook SWIC_DB_DEV_WORKING)
+  - id: swic
+    name: SWIC
+    description: CAP weather warnings, written by the SWIC notebook.
+    source: snowflake
+    table: DB_PROD.RAW_RISKMONITOR.SWIC_CAPWARNING_CUSTOMIZE_TABLE
+    # TODO(ingest-ts): EFFECTIVETIME is when a warning takes effect (text, hence TRY_TO_TIMESTAMP), not load time.
+    timestamp: EFFECTIVETIME
+    timestamp_cast: try_to_timestamp
+    schedule: "30 5,11,17,23 * * *"                # "4 times (5:30, 11:30)"
+    grace_minutes: 120
+    event_driven: true
+    stale_after_hours: 168
+    producer:
+      type: snowflake_task
+      # The task lives in DB_DEV although it writes to DB_PROD. The role needs MONITOR on it for TASK_HISTORY.
+      name: DB_DEV.RAW_RISKMONITOR.SWIC_DB_DEV_SCHEDULE
+
+  # 8 ── SG Terminal operations ledger (stream-triggered sproc → notebook), daily batch at 15:00 UTC, 255k+ rows
+  - id: sg_terminal
+    name: SG Terminal
+    source: snowflake
+    table: DB_PROD.MRT_TERMINAL.SG_TERMINAL_LEDGER
+    timestamp: UPLOAD_TO_CGO_MANIFEST
+    schedule: "0 15 * * *"
+    grace_minutes: 180
+    producer:
+      type: snowflake_stream
+      name: DB_PROD.MRT_TERMINAL.EXECUTE_NOTEBOOK_IF_STREAM_HAS_DATA
+      task: ""                                     # TODO(task): the task that calls the procedure, for TASK_HISTORY
+
+checks:
+  missed_run: {}
+  producer_failed: {}
+  freshness: {}
+  row_count: {}
+  null_spike: {}
+  duplicates: { max_rate: 0.02 }
+  schema_drift: {}
+
+alerts:
+  notifier: power_automate
+  # ┌──────────────────────────────────────────────────────────────────────┐
+  # │  POWER AUTOMATE FLOW URL: set PA_CSDW_URL in .env.live (local) or    │
+  # │  use kv://pa-csdw-alerts (production). Empty = dry-run.              │
+  # └──────────────────────────────────────────────────────────────────────┘
+  flow_url: env://PA_CSDW_URL
+  teams_channel: CSDW Data Alerts
+  email_owners_on: [critical]

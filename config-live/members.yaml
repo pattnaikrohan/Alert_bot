@@ -1,0 +1,12 @@
+# LIVE access rules, not logins: everyone signs in on the portal with their own Microsoft account (+ Authenticator).
+# The FIRST person to sign in becomes admin and owner of every project. People listed here get these projects
+# when they first sign in with that email; anyone else sees "ask for access". Manage access afterwards with:
+#   alertbot members add <email> csdw --role viewer|owner
+#   alertbot members remove <email> csdw
+#
+# Chinmoy Jagjit works on CSDW only, so he gets the csdw project and nothing else.
+users:
+  - email: chinmoy.jagjit@bdpint.com            # BDP International tenant
+    name: Chinmoy Jagjit
+    projects: { csdw: owner, csdw-adf: owner }
+

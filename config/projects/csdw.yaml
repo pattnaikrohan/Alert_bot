@@ -1,0 +1,70 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# CSDW: competitor product and price data, scraped three times a day.
+# PROTOTYPE: fake estate. Table and column names are placeholders until the
+# real CSDW layout is confirmed.
+# ──────────────────────────────────────────────────────────────────────────────
+project: csdw
+display_name: CSDW
+description: Competitor product catalogue and prices, scraped every eight hours from four retail sites.
+schedule: "*/10 * * * *"
+
+sources:
+  - id: main
+    type: sqlite                                  # production: azure_sql
+    url: sqlite:///./.data/estate_csdw.db
+    # server: sql-csdw.database.windows.net
+    # database: csdw
+    # auth: managed_identity
+
+pipeline:
+  type: fake_adf                                  # production: adf
+  source: main
+  subscription_id: 00000000-0000-0000-0000-000000000000
+  resource_group: rg-csdw
+  factory: adf-csdw
+  pipelines: [pl_csdw_scrape]
+
+trigger_table:
+  source: main
+  table: ctl_scrape_queue
+  id_column: queue_id
+  site_column: source_site
+  status_column: state
+  run_id_column: pipeline_run_id
+  created_column: requested_at
+  statuses:
+    pending: [queued]
+    running: [in_progress]
+    succeeded: [complete]
+    failed: [error, cancelled]
+
+outputs:
+  - id: products
+    source: main
+    table: stg_scraped_products
+    key: [source_site, sku]
+    group_by: source_site
+    loaded_at: ingested_at
+    required_fields: [product_name, price, availability]
+
+checks:
+  stuck_trigger: { after_minutes: 15 }
+  run_failed: {}
+  run_too_slow: { min_factor: 1.6 }
+  row_count: {}
+  empty_site: {}
+  null_spike: {}
+  duplicates: { max_rate: 0.02 }
+  freshness: { expected_every_minutes: 480, grace_minutes: 90 }
+  schema_drift: {}
+  mismatch: {}
+
+alerts:
+  notifier: power_automate
+  # ┌──────────────────────────────────────────────────────────────────────┐
+  # │  POWER AUTOMATE FLOW URL: set PA_CSDW_URL in .env (local) or use     │
+  # │  kv://pa-csdw-alerts (production). Empty = dry-run.                  │
+  # └──────────────────────────────────────────────────────────────────────┘
+  flow_url: env://PA_CSDW_URL
+  teams_channel: CSDW Data Alerts
+  email_owners_on: [critical]

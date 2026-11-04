@@ -1,0 +1,80 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# CSDW Data Factory: LIVE. Watches every pipeline in the factory directly from its run history
+# (read-only), the same factory "Jnana Files/app.py" reads.
+#
+#   failed run            → traced to the exact step (ForEach iteration, If branch, child pipeline)
+#   slow / stuck run      → against the pipeline's learned normal duration
+#   rows copied           → against the learned normal volume (pipelines with Copy steps)
+#   missed schedule       → from the factory's own Started schedule / tumbling-window triggers
+# ──────────────────────────────────────────────────────────────────────────────
+project: csdw-adf
+display_name: CSDW Data Factory
+description: Azure Data Factory dev-csdw-data-factory (PSABDP-CSDW-NonProd), every pipeline, read-only.
+kind: adf
+schedule: "*/10 * * * *"                          # how often the bot checks
+
+pipeline:
+  type: adf
+  subscription_id: b10dba21-0331-4510-a7cb-924077c9cb52   # PSABDP-CSDW-NonProd (an id, not a secret)
+  resource_group: dev-csdw-rg
+  factory: dev-csdw-data-factory
+  pipelines: []                                   # empty = every pipeline in the factory
+  exclude: []                                     # e.g. scratch / test pipelines to ignore
+  # Pilot: a person signs the bot in once with `alertbot adf-login` (device code + Authenticator).
+  # Production: a managed identity / service principal with read access → auth: default_credential
+  auth: device_code
+  tenant_id: ""                                   # empty = the signed-in account's home tenant (as Jnana's script)
+
+checks:
+  run_failed: {}
+  run_too_slow: { min_factor: 1.6 }
+  row_count: {}
+  empty_site: {}
+  missed_run: { grace_minutes: 30 }
+
+# ──────────────────────────────────────────────────────────────────────────────
+# DATA QUALITY inside the Snowflake tables the pipelines load (read-only SELECTs).
+# Every PROD table a copy step writes is found automatically and checked after each new load:
+#   row count today · empty values per column · duplicates · freshness · schema changes · negative values
+# Each learns its own normal (no thresholds to set). Add rules / keys / references per table below.
+# Sign-in (pilot): your own Snowflake login via Microsoft SSO. Put SNOWFLAKE_USER in .env.live, then run
+#   alertbot dq-check csdw-adf   once: a browser opens, you sign in, the token is cached for the worker.
+# Production: a read-only service user with key-pair auth (authenticator: snowflake_jwt, private_key: kv://...).
+# ──────────────────────────────────────────────────────────────────────────────
+quality:
+  enabled: false                                  # off: a database is connected by a person, never by default
+  source:
+    type: snowflake
+    account: psai-csdw                            # from the factory's Snowflake linked service (an id, not a secret)
+    user: env://SNOWFLAKE_USER
+    warehouse: SCDT_COMPUTE_WH
+    role: ""                                      # empty = your default role (needs SELECT on the tables)
+    authenticator: externalbrowser
+  auto: true
+  environments: [PROD]                            # which tables to check (PROD / UAT / DEV)
+  every_hours: 6                                  # and re-check at least this often
+  tables: []
+  # Per-table settings (optional), e.g.:
+  # tables:
+  #   - table: DB_PROD.RAW_TERMINAL.BA_ID
+  #     key: [BA_ID]                              # duplicates by key (default: identical rows)
+  #     required: [BA_ID, VESSEL_CODE]            # columns that should never be empty
+  #     date_column: LOAD_DATE                    # "today's rows" (default: found automatically)
+  #     freshness_hours: 26
+  #     rules:
+  #       - name: amount is positive
+  #         sql: ORDER_AMOUNT > 0                 # a read-only condition every row should meet
+  #         severity: critical
+  #     references:
+  #       - { column: BA_ID, table: DB_PROD.RAW_TERMINAL.BA_MASTER, ref_column: BA_ID }
+
+alerts:
+  notifier: power_automate
+  morning_report: "08:00"                         # Daily Morning Report to Teams (bot's time zone); "" = off
+  # ┌──────────────────────────────────────────────────────────────────────┐
+  # │  POWER AUTOMATE FLOW URL: PA_CSDW_URL in .env.live, or kv:// in prod. │
+  # │  Empty = dry-run (alerts are built and shown in the portal only).     │
+  # └──────────────────────────────────────────────────────────────────────┘
+  flow_url: env://PA_CSDW_URL
+  teams_channel: CSDW Data Alerts
+  email_owners_on: [critical]

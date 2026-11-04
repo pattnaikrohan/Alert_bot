@@ -1,0 +1,75 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Slipstream: marketplace listings scraped from partner sites.
+# One file per project. Adding a project = adding a file like this + members.
+# PROTOTYPE: points at a fake estate (SQLite + simulated ADF). The production
+# values are shown in comments next to each fake one.
+# ──────────────────────────────────────────────────────────────────────────────
+project: slipstream
+display_name: Slipstream
+description: Marketplace listings scraped nightly from five partner sites.
+schedule: "*/10 * * * *"
+
+sources:
+  - id: main
+    type: sqlite                                  # production: azure_sql
+    url: sqlite:///./.data/estate_slipstream.db   # production: server + database below
+    # server: sql-slipstream.database.windows.net
+    # database: slipstream
+    # auth: managed_identity
+
+pipeline:
+  type: fake_adf                                  # production: adf
+  source: main                                    # fake_adf reads simulated run history from here
+  subscription_id: 00000000-0000-0000-0000-000000000000
+  resource_group: rg-slipstream
+  factory: adf-slipstream
+  pipelines: [pl_web_scrape]
+
+trigger_table:
+  source: main
+  table: ctl_scrape_requests                      # production: ctl.scrape_requests
+  id_column: request_id
+  site_column: site
+  status_column: status
+  run_id_column: adf_run_id
+  created_column: created_at
+  statuses:                                       # map the table's own values onto the bot's states
+    pending: [pending]
+    running: [running]
+    succeeded: [succeeded]
+    failed: [failed]
+
+outputs:
+  - id: listings
+    source: main
+    table: stg_scraped_listings                   # production: stg.scraped_listings
+    key: [site, listing_id]
+    group_by: site
+    loaded_at: loaded_at
+    required_fields: [title, price, url]          # watched for null spikes
+
+checks:
+  stuck_trigger: { after_minutes: 20 }
+  run_failed: {}
+  run_too_slow: { min_factor: 1.6 }
+  row_count: {}                                   # learned per site + weekday; pin with { min: 500 }
+  empty_site: {}
+  null_spike: {}
+  duplicates: { max_rate: 0.01 }
+  freshness: { expected_every_minutes: 1440, grace_minutes: 180 }
+  schema_drift: {}
+  mismatch: {}
+
+alerts:
+  notifier: power_automate                        # or teams_workflow (no premium licence needed)
+  # ┌──────────────────────────────────────────────────────────────────────┐
+  # │  POWER AUTOMATE FLOW URL                                             │
+  # │  Put the URL in .env as PA_SLIPSTREAM_URL (local) or Key Vault as    │
+  # │  kv://pa-slipstream-alerts (production). Never paste it here: the    │
+  # │  URL carries its own signature and works as a password.              │
+  # │  While it is empty the bot runs in DRY-RUN: every alert is built     │
+  # │  and stored (visible in the portal) but nothing is sent.             │
+  # └──────────────────────────────────────────────────────────────────────┘
+  flow_url: env://PA_SLIPSTREAM_URL
+  teams_channel: Slipstream Data Alerts
+  email_owners_on: [critical]

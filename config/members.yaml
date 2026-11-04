@@ -1,0 +1,28 @@
+# PROTOTYPE membership seed. Fake people on the fictitious contoso.com domain.
+# In production, users are created on first Entra sign-in and memberships are
+# managed with `alertbot members ...` (later: synced from Entra groups).
+users:
+  - email: rohan@contoso.com
+    name: Rohan Pattnaik
+    admin: true
+    projects: { slipstream: owner, csdw: owner }
+
+  - email: priya.sharma@contoso.com
+    name: Priya Sharma
+    projects: { slipstream: viewer }
+
+  - email: daniel.okafor@contoso.com
+    name: Daniel Okafor
+    projects: { csdw: owner }
+
+  - email: mei.lin@contoso.com
+    name: Mei Lin
+    projects: { csdw: viewer }
+
+  - email: chinmoy.jagjit@contoso.com     # placeholder until his real sign-in email is known
+    name: Chinmoy Jagjit
+    projects: { csdw: owner }              # works on CSDW only
+
+  - email: alex.morgan@contoso.com
+    name: Alex Morgan
+    projects: {}                       # signed in, but no project yet → "request access" screen

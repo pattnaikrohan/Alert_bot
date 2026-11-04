@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Local state (SQLite metadata DB, fake project estates)
+.data/
+
+# Secrets
+.env
+.env.*
+!.env.example
+!.env.live.example
+
+# Portal
+portal/node_modules/
+portal/dist/
+portal/.env.local
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# local design-lab samples (may contain real run data)
+portal/.lab/

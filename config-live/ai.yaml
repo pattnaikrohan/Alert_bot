@@ -1,0 +1,15 @@
+# The bot's AI, through OpenRouter. Every use has a non-AI fallback: detection, checks and alerts never depend on it.
+ai:
+  enabled: true
+  provider: openrouter
+  # Chat models, tried in this order. A model that is rate-limited, down, slow or refuses is skipped and rested
+  # (429: ~1.5 min, 5xx/timeout: 2 min, not available to this key: 6 h); if all fail, the rule-based text is kept.
+  models:
+    - nvidia/nemotron-3.5-lightning:free      # 1M context, fast
+    - apodex/apodex-1.1-mini:free             # reasoning-first, 262K context
+    - thinkingmachines/inkling-small:free     # tried last: OpenRouter currently refuses it outside "agentic harness" apps
+  decision_model: inception/mercury-decide:free          # triage: escalate? how urgent?
+  embedding_model: liquid/lfm-2.5-embedding-350m:free    # similar past incidents
+  speech_model: fish-audio/s2.1-pro-free:free            # the robot's voice
+  api_key: env://OPENROUTER_API_KEY                      # .env.live locally; kv://openrouter-api-key in production
+  timeout_seconds: 45

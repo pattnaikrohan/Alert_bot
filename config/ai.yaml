@@ -1,0 +1,12 @@
+# Shared OpenRouter setup. Chat models are tried in priority order.
+ai:
+  enabled: true
+  provider: openrouter
+  models:
+    - nvidia/nemotron-3.5-lightning:free
+    - apodex/apodex-1.1-mini:free
+  decision_model: inception/mercury-decide:free
+  embedding_model: liquid/lfm-2.5-embedding-350m:free
+  speech_model: fish-audio/s2.1-pro-free:free
+  api_key: env://OPENROUTER_API_KEY
+  timeout_seconds: 45

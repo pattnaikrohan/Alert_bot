@@ -1,0 +1,113 @@
+import { SearchX } from "lucide-react";
+import { StrictMode, useEffect } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import "./styles/index.css";
+import "./styles/classic.css";  // the Classic style (only with <html data-style="classic">)
+import { Layout, useMe, useProject } from "@/app/Layout";
+import { openBot } from "@/components/assistant/BotPanel";
+import { EmptyState } from "@/components/ui/primitives";
+import { TooltipProvider } from "@/components/ui/menu";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { Alerts } from "@/pages/Alerts";
+import { Home } from "@/pages/Home";
+import { MyCharts } from "@/components/charts/MyCharts";
+import { Databases } from "@/pages/Databases";
+import { Lineage } from "@/pages/Lineage";
+import { AiUsage } from "@/pages/AiUsage";
+import { PipelineReport } from "@/pages/PipelineReport";
+import { Compute } from "@/pages/Compute";
+import { CortexUsage } from "@/pages/CortexUsage";
+import { Warehouse } from "@/pages/Warehouse";
+import { AllPipelines } from "@/pages/AllPipelines";
+import { IncidentDetail } from "@/pages/IncidentDetail";
+import { Incidents } from "@/pages/Incidents";
+import { ManagementOverview } from "@/pages/ManagementOverview";
+import { MorningReport } from "@/pages/MorningReport";
+import { Overview } from "@/pages/Overview";
+import { Runs } from "@/pages/Runs";
+import { SignIn } from "@/pages/SignIn";
+import { Tables } from "@/pages/Tables";
+
+/** The bot lives on Home: old links to its own pages (/bot, a project's /ask) open it there. */
+function OpenTheBot() {
+  const nav = useNavigate();
+  useEffect(() => {
+    nav("/", { replace: true });
+    window.setTimeout(() => openBot(), 80);  // after Home is showing (the panel closes on a page change)
+  }, [nav]);
+  return null;
+}
+
+/** Data Factory projects get the management overview; the others keep the site-by-site one. */
+function ProjectOverview() {
+  const { key } = useParams();
+  const project = useProject(key);
+  return (
+    <>
+      {project?.kind === "adf" ? <ManagementOverview /> : <Overview />}
+      {key && <MyCharts projectKey={key} />}
+    </>
+  );
+}
+
+/** Projects the user doesn't belong to look exactly like projects that don't exist. */
+function ProjectGate({ children }: { children: React.ReactNode }) {
+  const { key } = useParams();
+  const { me } = useMe();
+  if (!me.projects.some((p) => p.key === key)) {
+    if (!me.projects.length) return <Navigate to="/" replace />;
+    return (
+      <div className="mx-auto mt-16 max-w-lg rounded-[1.25rem] border border-line bg-surface shadow-card">
+        <EmptyState icon={SearchX}>Project not found. It doesn't exist, or your Azure access doesn't include it.{" "}
+          <Link to="/" className="font-semibold text-accent hover:underline">Go to your projects</Link></EmptyState>
+      </div>
+    );
+  }
+  return <>{children}</>;
+}
+
+function App() {
+  const { state } = useAuth();
+  if (state.status === "loading") return null;
+  if (state.status !== "signedIn") return <SignIn />;
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/bot" element={<OpenTheBot />} />
+        <Route path="/incidents" element={<Incidents />} />
+        <Route path="/runs" element={<Runs />} />
+        <Route path="/pipelines" element={<AllPipelines />} />
+        <Route path="/pipeline-report" element={<PipelineReport />} />
+        <Route path="/lineage" element={<Lineage />} />
+        <Route path="/databases" element={<Databases />} />
+        <Route path="/ai-usage" element={<AiUsage />} />
+        <Route path="/warehouse" element={<Warehouse />} />
+        <Route path="/compute" element={<Compute />} />
+        <Route path="/cortex" element={<CortexUsage />} />
+        <Route path="/p/:key" element={<ProjectGate><ProjectOverview /></ProjectGate>} />
+        <Route path="/p/:key/incidents" element={<ProjectGate><Incidents /></ProjectGate>} />
+        <Route path="/p/:key/i/:id" element={<ProjectGate><IncidentDetail /></ProjectGate>} />
+        <Route path="/p/:key/runs" element={<ProjectGate><Runs /></ProjectGate>} />
+        <Route path="/p/:key/tables" element={<ProjectGate><Tables /></ProjectGate>} />
+        <Route path="/p/:key/alerts" element={<ProjectGate><Alerts /></ProjectGate>} />
+        <Route path="/p/:key/report" element={<ProjectGate><MorningReport /></ProjectGate>} />
+        <Route path="/p/:key/ask" element={<OpenTheBot />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Layout>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
+        <TooltipProvider delayDuration={250} skipDelayDuration={150}>
+          <App />
+        </TooltipProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </StrictMode>,
+);
