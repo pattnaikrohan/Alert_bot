@@ -20,8 +20,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def env_files() -> tuple[str, ...]:
-    """`.env`, then ALERTBOT_ENV_FILE (later files win)."""
-    extra = os.environ.get("ALERTBOT_ENV_FILE", "")
+    """`.env`, then ALERTBOT_ENV_FILE (later files win). On Render (which sets RENDER) that defaults to
+    deploy/render.env: the live projects and the worker inside the server, with no secrets in it."""
+    extra = os.environ.get("ALERTBOT_ENV_FILE", "") or ("deploy/render.env" if os.environ.get("RENDER") else "")
     return (".env", extra) if extra and extra != ".env" else (".env",)
 
 
