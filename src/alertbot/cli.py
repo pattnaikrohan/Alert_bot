@@ -304,6 +304,32 @@ def serve(
     uvicorn.run("alertbot.api.main:app", host=host, port=port, reload=reload, log_level="info")
 
 
+@app.command()
+def start(
+    host: str = "127.0.0.1",
+    port: int = 8000,
+    tick: Annotated[int, typer.Option(help="Seconds between the worker's looks at Azure.")] = 15,
+) -> None:
+    """Start everything in one go: the worker (watching Azure, 'Live') and the portal's server. Ctrl+C stops both."""
+    import subprocess
+
+    import uvicorn
+
+    create_all()
+    # the worker runs as its own process, so a slow Azure round never holds up the website
+    w = subprocess.Popen([sys.executable, "-c", "from alertbot.cli import app; app()", "worker", "--tick", str(tick)])
+    console.print(f"[bold]Alert Bot starting[/] · portal on http://{host}:{port} · worker running · Ctrl+C stops both")
+    try:
+        uvicorn.run("alertbot.api.main:app", host=host, port=port, log_level="info")
+    finally:
+        w.terminate()
+        try:
+            w.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            w.kill()
+        console.print("stopped: server and worker")
+
+
 # ── looking ───────────────────────────────────────────────────────────────────
 
 
