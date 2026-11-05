@@ -39,12 +39,33 @@ class SignInRequired(RuntimeError):
 @lru_cache(maxsize=1)
 def app() -> Any:
     import msal
-    from msal_extensions import PersistedTokenCache, build_encrypted_persistence
 
     path = get_settings().msal_cache
     path.parent.mkdir(parents=True, exist_ok=True)
-    cache = PersistedTokenCache(build_encrypted_persistence(str(path)))
-    return msal.PublicClientApplication(CLIENT_ID, authority=AUTHORITY, token_cache=cache)
+
+    try:
+        from msal_extensions import (
+            PersistedTokenCache,
+            build_encrypted_persistence,
+        )
+
+        cache = PersistedTokenCache(
+            build_encrypted_persistence(str(path))
+        )
+
+    except Exception:
+        log.warning(
+            "OS-encrypted MSAL cache is unavailable. "
+            "Using an in-memory cache; sign-in may be required "
+            "again after a service restart."
+        )
+        cache = msal.SerializableTokenCache()
+
+    return msal.PublicClientApplication(
+        CLIENT_ID,
+        authority=AUTHORITY,
+        token_cache=cache,
+    )
 
 
 def _claims(token: str) -> dict[str, Any]:
