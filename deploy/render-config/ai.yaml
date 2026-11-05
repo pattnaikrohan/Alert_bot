@@ -1,0 +1,15 @@
+# Render: the AI settings only. No projects or members are set up here: each person's Data Factories, Logic Apps
+# and Synapse workspaces are found in Azure when they sign in (written to projects/discovered/ on the server).
+
+ai:
+  enabled: true
+  provider: openrouter
+  models:
+    - nvidia/nemotron-3.5-lightning:free      # 1M context, fast
+    - apodex/apodex-1.1-mini:free             # reasoning-first, 262K context
+    - thinkingmachines/inkling-small:free     # tried last: OpenRouter currently refuses it outside "agentic harness" apps
+  decision_model: inception/mercury-decide:free          # triage: escalate? how urgent?
+  embedding_model: liquid/lfm-2.5-embedding-350m:free    # similar past incidents
+  speech_model: fish-audio/s2.1-pro-free:free            # the robot's voice
+  api_key: env://OPENROUTER_API_KEY                      # .env.live locally; kv://openrouter-api-key in production
+  timeout_seconds: 45
