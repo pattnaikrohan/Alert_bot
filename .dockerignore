@@ -1,0 +1,17 @@
+# secrets and local state never go into the image
+.env
+.env.*
+.data/
+.git/
+.venv/
+.backups/
+.pytest_cache/
+.ruff_cache/
+**/__pycache__/
+portal/node_modules/
+portal/.lab/
+# local-only files
+Jnana Files/
+*.eml
+*.xlsx
+*.pdf
