@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://alert-bot-backend.onrender.com/api/:path*"
+      "destination": "https://alert-bot-6x61.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
