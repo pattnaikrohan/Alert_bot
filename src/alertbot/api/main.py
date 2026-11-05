@@ -929,3 +929,8 @@ if _DIST.is_dir():
             raise HTTPException(404)
         file = _DIST / path
         return FileResponse(file if path and file.is_file() else _DIST / "index.html")
+else:  # API only (e.g. on Render, with the portal on Vercel): hosts' uptime checks look at /
+
+    @app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
+    def root() -> dict:
+        return {"service": "Alert Bot API", "status": "ok", "health": "/api/health", "docs": "/api/docs"}
