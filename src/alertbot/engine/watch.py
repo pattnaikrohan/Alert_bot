@@ -98,7 +98,7 @@ def watch_all(now: datetime | None = None) -> list[tuple[str, list[Change], Any]
         try:
             changes = look(cfg, now)
         except Exception as exc:  # noqa: BLE001 - one unreachable factory must not stop the others
-            log.info("watching %s failed: %s", cfg.project, exc)
+            log.warning("watching %s failed: %s", cfg.project, exc)  # a warning, so hosts' logs show why it's Paused
             continue
         if changes:
             out.append((cfg.project, changes, run_cycle(cfg, now=now)))
