@@ -34,7 +34,14 @@ settings = get_settings()
 @asynccontextmanager
 async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
     create_all()
+    stop = None
+    if settings.embedded_worker:  # one process: the worker shares the server's in-memory Microsoft sign-in
+        from ..engine.worker import start_in_thread
+
+        stop = start_in_thread(settings.worker_tick)
     yield
+    if stop:
+        stop.set()
 
 
 app = FastAPI(title="Alert Bot API", version=__version__, docs_url="/api/docs", openapi_url="/api/openapi.json",

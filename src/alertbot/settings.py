@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     # Microsoft sign-in token cache (OS-encrypted) and which signed-in account the bot uses for Data Factory reads.
     msal_cache: Path = Path("./.data/msal-cache.bin")
     bot_azure_account: Path = Path("./.data/azure-account.json")
+    # Run the worker inside the server (one process). Needed where the sign-in cache is in memory only (Linux hosts
+    # such as Render), since a separate worker process couldn't see it. Locally, `alertbot start` runs it apart.
+    embedded_worker: bool = False
+    worker_tick: int = Field(default=15, ge=5)
 
     # Where alerts go for projects that don't name their own flow (e.g. projects found automatically in Azure):
     # a secret reference such as env://PA_CSDW_URL or kv://name. Empty: such projects stay in dry-run.
