@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { refreshEverything } from "./actions";
 import { Dock, GENIE_EVENT, playGenie } from "./Dock";
 import { pageOf } from "./nav";
+import { RefreshScene } from "./RefreshScene";
 import { serviceIcon, shortName } from "./projects";
 import { ShellContext, useShell, type Feed, type PipelineBrief, type PipelineCounts, type RunEvent } from "./shell";
 
@@ -168,6 +169,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <BotPanel />
       <CommandPalette open={palette} onClose={() => setPalette(false)} />
       <Tour open={tour} project={projectKey} onClose={closeTour} />
+      <RefreshScene />
       <Toaster theme={theme} position="top-right" offset={76} richColors closeButton toastOptions={{ style: { fontFamily: "var(--font-sans)" } }} />
     </ShellContext.Provider>
   );

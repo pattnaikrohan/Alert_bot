@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 import { post } from "@/lib/api";
 import { refreshAll } from "@/lib/hooks";
+import { beginRefreshScene } from "./RefreshScene";
 
 /** Ask Azure again (with my own sign-in) which Data Factories, Synapse workspaces and Logic Apps I can see. */
 export async function lookAgain(reload: () => void) {
@@ -63,20 +64,22 @@ function Summary({ r }: { r: RefreshReport }) {
 }
 
 /** Re-read everything I'm connected to (Azure and each project's pipelines, every database, Snowflake feeds), then run
- * every check, and say what changed. */
+ * every check, and say what changed. The app blurs behind the refresh scene meanwhile; the summary shows once it lifts. */
 export async function refreshEverything(): Promise<RefreshReport | null> {
-  const id = toast.loading("Re-reading everything you're connected to…", { description: "Azure, each project's pipelines, your databases, then every check." });
+  const end = beginRefreshScene();
   try {
     const r = await post<RefreshReport>("/api/refresh");
     const bad = r.sources.some((s) => s.status === "error") || r.databases.some((d) => d.status !== "ok") || r.azure?.status === "error";
+    refreshAll();  // pages fetch the new state while still blurred, so the app shows it as the blur lifts
+    await end({ ok: !bad });
     (bad ? toast.warning : toast.success)(bad ? "Up to date, with problems" : "Up to date with everything you're connected to",
-      { id, description: <Summary r={r} />, duration: 12000 });
+      { description: <Summary r={r} />, duration: 12000 });
     return r;
   } catch (e) {
-    toast.error("Couldn't refresh", { id, description: (e as Error).message });
-    return null;
-  } finally {
     refreshAll();
+    await end({ ok: false });
+    toast.error("Couldn't refresh", { description: (e as Error).message });
+    return null;
   }
 }
 

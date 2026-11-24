@@ -30,9 +30,6 @@ export function ThemePanel() {
           </button>
         ))}
       </div>
-      {style === "classic" ? (
-        <p className="border-t border-line px-3 pb-1 pt-2 text-[0.6875rem] text-ink-3">Classic has its own calm colours. Colour shades are part of the Modern style.</p>
-      ) : <>
       <MenuSeparator />
       <MenuLabel>{theme === "light" ? "Light shades" : "Dark shades"}</MenuLabel>
       {/* one row per shade: a tiny preview of the page and its accent, the name, what it looks like */}
@@ -60,8 +57,7 @@ export function ThemePanel() {
           );
         })}
       </div>
-      <p className="border-t border-line px-3 pb-1 pt-2 text-[0.6875rem] text-ink-3">Saved on this device.</p>
-      </>}
+      <p className="border-t border-line px-3 pb-1 pt-2 text-[0.6875rem] text-ink-3">Saved on this device. Shades apply to both Modern and Classic.</p>
     </>
   );
 }

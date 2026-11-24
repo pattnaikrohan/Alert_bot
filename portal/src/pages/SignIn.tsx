@@ -226,7 +226,7 @@ function StyleChoice() {
               <span className="text-[0.875rem] font-semibold text-[var(--h-ink)]">{st.label}</span>
               <span className={cn("auth-style-dot", style === st.id && "on")} aria-hidden />
             </span>
-            <span className="block text-left text-[0.6875rem] leading-4 text-[var(--h-ink-3)]">{st.id === "modern" ? "Dock, rich colour and motion" : "Side menu, calm and formal: for management"}</span>
+            <span className="block text-left text-[0.6875rem] leading-4 text-[var(--h-ink-3)]">{st.id === "modern" ? "Dock, rich colour and motion" : "Side menu and flat panels, same colours"}</span>
           </button>
         ))}
       </div>

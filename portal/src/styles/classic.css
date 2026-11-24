@@ -1,160 +1,151 @@
 /* ================================================================== CLASSIC STYLE
-   For management: the look of a well-made annual report. Warm ivory paper, white panels with hairline rules, deep navy
-   and a restrained gold, Newsreader headings over Inter text, small-caps labels, a navy menu down the left, and no
-   decorative motion. Numbers stay in Inter with lining, aligned figures. Status colours (red / amber / green) are the
-   same as Modern, so they mean the same thing in both. Everything here applies only with <html data-style="classic">;
-   Modern is the rest of the stylesheet, untouched. Loaded after index.css (outside its layers), so it wins where it speaks. */
+   For management: a calm, professional console, in the SAME colours as Modern. Every colour here is one of Modern's
+   tokens (canvas, surface, ink, accent, the shade's --sb-accent), so each Modern shade, light or dark, carries over
+   unchanged. What Classic changes is the structure: Inter throughout with tight headings, a fixed side menu in the
+   shade's deep accent, a flat header, crisp bordered panels with small corners, quiet KPI tiles, ledger-style tables,
+   and no decorative glow or motion. Applies only with <html data-style="classic">; loaded after index.css (outside its
+   layers), so it wins where it speaks. */
 
 :root[data-style='classic'] {
-  --font-display: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  --radius-sm: 3px; --radius-md: 4px; --radius-lg: 4px; --radius-xl: 6px;
-}
-:root[data-style='classic'][data-theme='light'] {
-  --canvas: #f6f4ef; --canvas-grid: transparent; --canvas-glow: transparent;
-  --surface: #ffffff; --surface-2: #faf8f4; --surface-3: #f1ede5;
-  --line: rgb(41 37 36 / 0.1); --line-strong: rgb(41 37 36 / 0.18);
-  --ink: #1c1917; --ink-2: #44403c; --ink-3: #6f6862;
-  --accent: #1b2f4b; --accent-ink: #ffffff; --accent-soft: rgb(27 47 75 / 0.07); --focus: #2c5c9a;
-  --gold: #a8834a; --gold-soft: rgb(168 131 74 / 0.12); --navy-deep: #13233a;
-  --glow: 0 0 0 1px rgb(27 47 75 / 0.3);
-  --shadow: 0 1px 0 rgb(41 37 36 / 0.03), 0 1px 3px rgb(41 37 36 / 0.05);
-  --elev-1: 0 1px 0 rgb(41 37 36 / 0.03), 0 1px 3px rgb(41 37 36 / 0.05); --elev-3: 0 18px 40px -22px rgb(28 25 23 / 0.35);
-  --hero-bg: var(--surface); --row-hover: rgb(27 47 75 / 0.035); --row-selected: rgb(27 47 75 / 0.06);
-  --overlay-bg: #ffffff; --tooltip-bg: #ffffff;
-  /* charts: one quiet family (navy, gold, teal, slate, plum, olive, ochre); status colours unchanged */
-  --cat-1: #1f4e79; --cat-2: #b08d57; --cat-3: #2e7d6b; --cat-4: #b7862a; --cat-5: #7a4b6e; --cat-6: #5f7f3a; --cat-7: #5b6c8f; --cat-8: #9b2c2c;
+  --font-display: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px; --radius-xl: 10px;
+  --canvas-grid: transparent; --canvas-glow: transparent;
+  --hero-bg: var(--surface);
+  --cl-panel: 0 0 0 1px var(--line);
 }
 :root[data-style='classic'][data-theme='dark'] {
-  --canvas: #0f1318; --canvas-grid: transparent; --canvas-glow: transparent;
-  --surface: #151b23; --surface-2: #1a212b; --surface-3: #222b36;
-  --line: rgb(231 226 216 / 0.08); --line-strong: rgb(231 226 216 / 0.16);
-  --ink: #ece8e0; --ink-2: #c8c2b8; --ink-3: #958f86;
-  --accent: #c9a46a; --accent-ink: #14100a; --accent-soft: rgb(201 164 106 / 0.12); --focus: #c9a46a;
-  --gold: #c9a46a; --gold-soft: rgb(201 164 106 / 0.14); --navy-deep: #0a0f15;
-  --glow: 0 0 0 1px rgb(201 164 106 / 0.3);
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.35); --elev-1: 0 1px 2px rgb(0 0 0 / 0.3); --elev-3: 0 18px 40px -22px rgb(0 0 0 / 0.7);
-  --hero-bg: var(--surface); --row-hover: rgb(231 226 216 / 0.03); --row-selected: rgb(201 164 106 / 0.08);
-  --overlay-bg: #1a212b; --tooltip-bg: #1a212b;
-  --cat-1: #5b8fc7; --cat-2: #c9a46a; --cat-3: #4fa58f; --cat-4: #d4a548; --cat-5: #a77b9b; --cat-6: #86a65e; --cat-7: #8c9bc0; --cat-8: #d06464;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.28); --shadow-card: var(--shadow);
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.28);
+  --cl-raise: 0 1px 2px rgb(0 0 0 / 0.25);
+}
+:root[data-style='classic'][data-theme='light'] {
+  --shadow: 0 1px 2px rgb(16 42 67 / 0.06), 0 1px 1px rgb(16 42 67 / 0.03); --shadow-card: var(--shadow);
+  --elev-1: 0 1px 2px rgb(16 42 67 / 0.06);
+  --cl-raise: 0 1px 3px rgb(16 42 67 / 0.07);
 }
 
-/* ── type ─────────────────────────────────────────────────────────────────── */
+/* ── type: one family, firm weights, tight tracking ────────────────────────────────────── */
 :root[data-style='classic'] body { background: var(--canvas); font-feature-settings: 'cv11' 1, 'ss03' 1; }
-:root[data-style='classic'] .display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.005em; word-spacing: normal; font-optical-sizing: auto; }
-:root[data-style='classic'] h1.display { font-weight: 600; letter-spacing: -0.012em; }
-/* labels: small capitals in gold, the way a report heads its sections */
-:root[data-style='classic'] .eyebrow { color: var(--gold) !important; letter-spacing: 0.16em; font-weight: 600; }
-:root[data-style='classic'] .eyebrow svg { color: var(--gold); }
-/* numbers: Inter with lining, aligned figures (a serif's old-style digits suit prose, not a P&L) */
-:root[data-style='classic'] :is(.kpi, .tabular-nums, .num, .num-cell, .home-stat-value, .ai-hero h1 span, .cc-hero h1 span, .ai-whatif .display) {
-  font-family: var(--font-sans); font-variant-numeric: lining-nums tabular-nums; letter-spacing: -0.015em;
-}
-:root[data-style='classic'] :is(.kpi, .home-stat-value) { font-weight: 600; }
+:root[data-style='classic'] .display { font-family: var(--font-display); font-weight: 650; letter-spacing: -0.018em; }
+:root[data-style='classic'] h1.display, :root[data-style='classic'] h2.display { font-weight: 650; letter-spacing: -0.022em; }
+:root[data-style='classic'] .eyebrow { color: var(--ink-3) !important; letter-spacing: 0.12em; font-weight: 650; }
+:root[data-style='classic'] .eyebrow svg { color: var(--accent); }
+:root[data-style='classic'] :is(.kpi, .tabular-nums, .num, .num-cell, .home-stat-value) { font-variant-numeric: lining-nums tabular-nums; }
 
-/* ── shape: squarer corners everywhere (pills and dots stay round) ─────────── */
-:root[data-style='classic'] :is([class*='rounded-['], .rounded-3xl, .rounded-2xl, .rounded-xl):not(.rounded-full) { border-radius: 6px; }
-:root[data-style='classic'] :is(.rounded-lg, .rounded-md) { border-radius: 4px; }
+/* ── shape: small, consistent corners (pills and dots stay round) ──────────────────────── */
+:root[data-style='classic'] :is([class*='rounded-['], .rounded-3xl, .rounded-2xl, .rounded-xl):not(.rounded-full) { border-radius: 8px; }
+:root[data-style='classic'] :is(.rounded-lg, .rounded-md) { border-radius: 6px; }
 :root[data-style='classic'] :is(.home-hero, .home-bot, .home-card, .home-stat, .cx-product, .cc-best, .disclosure, .disclosure-head, .bot-panel-chat,
-  .as-input, .as-action, .ai-whatif, .ai-hero, .page-hero, .dock-side-item, .auth-card, .wh-db, .cc-tabs, .cc-tab, .ai-tip) { border-radius: 6px; }
-:root[data-style='classic'] :is(.dock-side-icon, .cx-product-icon, .home-card-icon, .home-bot-badge) { border-radius: 4px; }
-:root[data-style='classic'] :is(.home-say, .hdr-ask, .home-step, .cc-share, .cx-bar, .cx-bar > span, .auth-style, .auth-style-pic) { border-radius: 3px; }
+  .as-input, .as-action, .ai-whatif, .ai-hero, .page-hero, .auth-card, .wh-db, .cc-tabs, .cc-tab, .ai-tip) { border-radius: 8px; }
+:root[data-style='classic'] :is(.dock-side-item) { border-radius: 6px; }
+:root[data-style='classic'] :is(.dock-side-icon, .cx-product-icon, .home-card-icon, .home-bot-badge) { border-radius: 6px; }
+:root[data-style='classic'] :is(.home-say, .hdr-ask, .home-step, .cc-share, .cx-bar, .cx-bar > span, .auth-style, .auth-style-pic) { border-radius: 6px; }
 
-/* ── calm: no glows, waves, blobs, glass or drifting motion ─────────────────── */
+/* ── calm: no glows, sheens, blobs, glass or drifting motion ───────────────────────────── */
 :root[data-style='classic'] :is(.ai-hero-glow, .hero-swell, .auth-blob, .sb-glow, .home-hero-bot) { display: none !important; }
 :root[data-style='classic'] .sidebar::before, :root[data-style='classic'] .sidebar::after, :root[data-style='classic'] .auth-card::before { content: none; display: none; }
 :root[data-style='classic'] .glass { background: var(--overlay-bg); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: var(--elev-3), 0 0 0 1px var(--line-strong); }
 :root[data-style='classic'] :is(.card-in, .page-in, .home-empty, .ai-grow, .ai-grow-x, .anim-pop, .bot-panel, .dock-sidebar, .disclosure-body) { animation: none !important; }
-:root[data-style='classic'] :is(.home-stat.is-link:hover, .cc-best:hover, .hdr-ask:hover, .home-say:hover, .as-starter:hover, .cx-product:hover) { transform: none; }
+:root[data-style='classic'] :is(.home-stat.is-link:hover, .cc-best:hover, .hdr-ask:hover, .home-say:hover, .as-starter:hover, .cx-product:hover, .dock-side-mode:hover) { transform: none; }
 :root[data-style='classic'] [class*='bg-gradient-to-'] { background-image: none !important; }
 
-/* ── the header: white, a navy rule across the very top, a hairline under it ── */
+/* ── header: the page's own surface, a single hairline under it ────────────────────────── */
 :root[data-style='classic'] .app-header {
-  margin: 0 !important; height: 4rem; border-radius: 0 !important; background: var(--surface) !important;
-  border: 0; border-top: 3px solid var(--navy-deep); border-bottom: 1px solid var(--line-strong); box-shadow: 0 1px 0 rgb(41 37 36 / 0.02);
+  margin: 0 !important; height: 3.75rem; border-radius: 0 !important;
+  background: var(--surface) !important; border: 0; border-bottom: 1px solid var(--line); box-shadow: none;
 }
-:root[data-style='classic'] .app-header h1.display { font-size: 1.3rem; font-weight: 600; }
-/* (Modern paints the light header deep blue with white text; Classic gives it back the page's own colours) */
+:root[data-style='classic'] .app-header h1.display { font-size: 1.125rem; }
+/* Modern paints the light header in the deep accent with white ink; Classic keeps the page's own ink there */
 :root[data-style='classic'][data-theme='light'] :is(.app-header, .dock-wrap) {
   --ink: inherit; --ink-2: inherit; --ink-3: inherit; --line: inherit; --line-strong: inherit; --surface-2: inherit; --surface-3: inherit;
   --accent: inherit; --accent-ink: inherit; --accent-soft: inherit; --good-ink: inherit; --warning-ink: inherit; --critical-ink: inherit; --focus: inherit;
 }
-:root[data-style='classic'] .hdr-ask { color: var(--accent); background: transparent; box-shadow: inset 0 0 0 1px var(--line-strong); font-weight: 600; }
-:root[data-style='classic'] .hdr-ask svg { color: var(--gold); }
-:root[data-style='classic'] .hdr-ask:hover { background: var(--surface-2); }
+:root[data-style='classic'][data-theme='light'] .app-header .brand-bot { color: var(--accent); }
+:root[data-style='classic'] .hdr-ask { color: var(--accent); background: var(--accent-soft); box-shadow: none; font-weight: 600; }
+:root[data-style='classic'] .hdr-ask:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+:root[data-style='classic'] .hdr-tools { background: transparent; border-color: var(--line); }
 
-/* ── the menu: deep navy down the left; the page you're on marked with a gold bar ── */
+/* ── side menu: a solid panel in the shade's deep accent (light) or a lifted surface (dark) ── */
 :root[data-style='classic'] .sidebar {
-  --ink: #f4f1ea; --ink-2: rgb(244 241 234 / 0.8); --ink-3: rgb(244 241 234 / 0.52);
-  --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14);
-  --surface: var(--navy-deep); --surface-2: rgb(255 255 255 / 0.05); --surface-3: rgb(255 255 255 / 0.09);
-  --accent: var(--gold); --accent-ink: #14100a; --accent-soft: rgb(201 164 106 / 0.14);
-  --good-ink: #b9e6c9; --warning-ink: #f3d79c; --critical-ink: #f5b3ad; --focus: var(--gold);
-  background: var(--navy-deep) !important; border: 0; border-right: 1px solid rgb(0 0 0 / 0.25); box-shadow: none; color: var(--ink);
+  background: color-mix(in srgb, var(--sb-accent) 7%, var(--surface)) !important;
+  border: 0; border-right: 1px solid var(--line); border-radius: 0; box-shadow: none;
 }
-:root[data-style='classic'][data-theme='light'] .sidebar { --gold: #c9a46a; }
-:root[data-style='classic'] .dock-side-content { padding-top: 1.35rem; }
-:root[data-style='classic'] .dock-side-header { padding-bottom: 1.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--line); }
-:root[data-style='classic'] .dock-side-header .brand-word { font-family: var(--font-display) !important; font-weight: 600; letter-spacing: 0.01em; }
-:root[data-style='classic'] .dock-side-section-label { color: var(--gold); letter-spacing: 0.18em; font-weight: 600; }
+:root[data-style='classic'][data-theme='light'] .sidebar {
+  background: color-mix(in srgb, var(--sb-accent) 64%, #061528) !important; border-right-color: transparent;
+}
+:root[data-style='classic'] .dock-side-content { padding: 1.1rem 0.75rem 0.75rem; }
+:root[data-style='classic'] .dock-side-header { padding-bottom: 1.1rem; margin-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+:root[data-style='classic'] .dock-side-section-label { color: var(--ink-3); letter-spacing: 0.14em; font-weight: 650; }
 :root[data-style='classic'] .dock-side-item { min-height: 2.5rem; border-color: transparent; color: var(--ink-2); font-weight: 500; }
-:root[data-style='classic'] .dock-side-item:hover { background: var(--surface-2); color: var(--ink); }
-:root[data-style='classic'] .dock-side-item.is-active { background: rgb(255 255 255 / 0.07); border-color: transparent; box-shadow: inset 3px 0 0 var(--gold); color: #ffffff; }
+:root[data-style='classic'] .dock-side-item:hover { background: var(--surface-2); border-color: transparent; color: var(--ink); }
+:root[data-style='classic'] .dock-side-item.is-active {
+  background: var(--accent-soft); border-color: transparent; color: var(--ink); font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
 :root[data-style='classic'] .dock-side-icon { background: transparent; border-color: transparent; color: var(--ink-3); }
-:root[data-style='classic'] .dock-side-item.is-active .dock-side-icon { background: transparent; border-color: transparent; color: var(--gold); }
+:root[data-style='classic'] .dock-side-item:hover .dock-side-icon { color: var(--ink-2); }
+:root[data-style='classic'] .dock-side-item.is-active .dock-side-icon { background: transparent; border-color: transparent; color: var(--accent); }
 :root[data-style='classic'] .dock-side-children { border-left-color: var(--line-strong); }
 :root[data-style='classic'] .dock-side-footer { border-top-color: var(--line); }
+:root[data-style='classic'] .dock-side-mode { border-radius: 6px; }
 
-/* ── panels: white paper with hairline rules ───────────────────────────────── */
-:root[data-style='classic'] :is(.ai-hero, .surface-hero, .page-hero) { background: var(--surface) !important; box-shadow: 0 0 0 1px var(--line), var(--elev-1) !important; border-color: transparent; }
-:root[data-style='classic'] .page-hero h1 { font-size: 1.85rem; }
-/* Home: the state shown as a coloured stripe down the left of the summary */
-:root[data-style='classic'] .home-hero { background: var(--surface); box-shadow: inset 4px 0 0 var(--tone), 0 0 0 1px var(--line), var(--elev-1); }
-:root[data-style='classic'] .home-hero h1 { font-size: 1.85rem; }
-/* KPI tiles: a navy rule along the top, the figure set like a report's key numbers */
-:root[data-style='classic'] .home-stat { background: var(--surface); box-shadow: inset 0 2px 0 var(--accent), 0 0 0 1px var(--line); }
-:root[data-style='classic'] .home-stat-label { text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.1em; color: var(--ink-3); font-weight: 600; }
-:root[data-style='classic'] :is(div, button):has(> p.kpi) { box-shadow: inset 0 2px 0 var(--accent); }
-:root[data-style='classic'] .home-bot { box-shadow: 0 0 0 1px var(--line), var(--elev-1); }
-:root[data-style='classic'] .home-bot-head, :root[data-style='classic'] .bot-panel-bar { background: var(--surface-2); }
-:root[data-style='classic'] .home-bot-badge { background: var(--accent); color: var(--gold); box-shadow: none; }
-:root[data-style='classic'] .home-card { background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
-:root[data-style='classic'] :is(.home-card-icon, .cx-product-icon) { background: var(--gold-soft); color: var(--gold); }
-:root[data-style='classic'] .home-step { background: var(--surface); }
+/* ── panels: flat surfaces with a hairline and the faintest lift ───────────────────────── */
+:root[data-style='classic'] :is(.ai-hero, .surface-hero, .page-hero) {
+  background: var(--surface) !important; border-color: transparent; box-shadow: var(--cl-panel), var(--cl-raise) !important;
+}
+:root[data-style='classic'] .page-hero h2.display { font-size: 1.5rem; }
+:root[data-style='classic'] .shadow-card { box-shadow: var(--cl-panel), var(--cl-raise); border-color: transparent; }
+/* Home: the state as a slim coloured rule down the left of the summary */
+:root[data-style='classic'] .home-hero { background: var(--surface); box-shadow: inset 3px 0 0 var(--tone), var(--cl-panel), var(--cl-raise); }
+:root[data-style='classic'] .home-hero h1 { font-size: 1.5rem; letter-spacing: -0.022em; }
+/* KPI tiles: quiet panels; the figure carries the colour, the label sits above it in small capitals */
+:root[data-style='classic'] .home-stat { background: var(--surface-2); box-shadow: var(--cl-panel); }
+:root[data-style='classic'] .home-stat-value { font-size: 1.625rem; font-weight: 650; letter-spacing: -0.025em; }
+:root[data-style='classic'] .home-stat-label { text-transform: uppercase; font-size: 0.625rem; letter-spacing: 0.1em; color: var(--ink-3); font-weight: 650; }
+:root[data-style='classic'] .home-bot { background: var(--surface); box-shadow: var(--cl-panel), var(--cl-raise); }
+:root[data-style='classic'] :is(.home-bot-head, .bot-panel-bar) { background: var(--surface); border-color: var(--line); }
+:root[data-style='classic'] .home-bot-badge { background: var(--accent-soft); color: var(--accent); box-shadow: none; }
+:root[data-style='classic'] .home-card { background: var(--surface); box-shadow: var(--cl-panel); }
+:root[data-style='classic'] .home-card:hover { box-shadow: 0 0 0 1px var(--line-strong); }
+:root[data-style='classic'] :is(.home-card-icon, .cx-product-icon) { background: var(--accent-soft); color: var(--accent); }
+:root[data-style='classic'] .home-step { background: var(--surface); box-shadow: var(--cl-panel); }
 :root[data-style='classic'] .home-ask { box-shadow: none; }
-:root[data-style='classic'] .cx-product { background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
-:root[data-style='classic'] .cc-best { background: var(--surface); box-shadow: inset 3px 0 0 var(--good), 0 0 0 1px var(--line); }
-:root[data-style='classic'] .ai-whatif { background: var(--surface-2) !important; box-shadow: 0 0 0 1px var(--line) !important; }
+:root[data-style='classic'] .cx-product { background: var(--surface); box-shadow: var(--cl-panel); }
+:root[data-style='classic'] .cc-best { background: var(--surface); box-shadow: inset 3px 0 0 var(--good), var(--cl-panel); }
+:root[data-style='classic'] .ai-whatif { background: var(--surface-2) !important; box-shadow: var(--cl-panel) !important; }
 :root[data-style='classic'] .bot-panel { box-shadow: none; background: var(--canvas); }
-:root[data-style='classic'] .bot-panel-chat { box-shadow: 0 0 0 1px var(--line), var(--elev-1); }
-:root[data-style='classic'] .disclosure { box-shadow: 0 0 0 1px var(--line); }
+:root[data-style='classic'] .bot-panel-chat { box-shadow: var(--cl-panel), var(--cl-raise); }
+:root[data-style='classic'] .disclosure { box-shadow: var(--cl-panel); }
 
-/* tables: column heads in small capitals over a hairline, like a financial statement */
+/* tables: column heads in small capitals over a hairline, rows divided like a ledger */
 :root[data-style='classic'] .data-table > thead > tr > th {
-  background: var(--surface-2); color: var(--ink-3); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+  background: var(--surface-2); color: var(--ink-3); font-size: 0.65rem; font-weight: 650; text-transform: uppercase; letter-spacing: 0.08em;
   border-bottom: 1px solid var(--line-strong);
 }
 
-/* buttons: crisp and square-cornered; navy primary, outlined secondary */
-:root[data-style='classic'] button[class*='bg-accent'], :root[data-style='classic'] a[class*='bg-accent'] { box-shadow: none !important; letter-spacing: 0.01em; }
+/* buttons: flat and crisp; the primary in the accent, secondaries outlined */
+:root[data-style='classic'] :is(button, a)[class*='bg-accent'] { box-shadow: none !important; background-image: none !important; }
 :root[data-style='classic'] :is(button, a)[class*='bg-surface-2'][class*='shadow-'] { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-strong) !important; }
 
-/* ── sign-in: ivory page; the welcome set in a navy panel with a gold rule ── */
+/* ── sign-in: the welcome on a solid panel in the shade's deep accent ──────────────────── */
 :root[data-style='classic'] .auth-root { background: var(--canvas) !important; }
 :root[data-style='classic'] .auth-root > div > section:first-child {
   position: relative; align-self: stretch; display: flex !important; flex-direction: column; justify-content: center;
-  padding: clamp(1.75rem, 5vh, 3rem) 3.25rem; border-radius: 6px; background: var(--navy-deep); color: #f4f1ea;
-  --h-ink: #f4f1ea; --h-ink-2: rgb(244 241 234 / 0.78); --h-ink-3: rgb(244 241 234 / 0.55); --accent: #c9a46a; --accent-soft: rgb(201 164 106 / 0.14);
-  --line: rgb(255 255 255 / 0.12); --surface-2: rgb(255 255 255 / 0.06); --ink: #f4f1ea; --ink-2: rgb(244 241 234 / 0.8); --ink-3: rgb(244 241 234 / 0.55);
+  padding: clamp(1.75rem, 5vh, 3rem) 3.25rem; border-radius: 10px;
+  background: color-mix(in srgb, var(--sb-accent) 64%, #061528); color: #ffffff;
+  --h-ink: #ffffff; --h-ink-2: rgb(255 255 255 / 0.82); --h-ink-3: rgb(255 255 255 / 0.62);
+  --ink: #ffffff; --ink-2: rgb(255 255 255 / 0.84); --ink-3: rgb(255 255 255 / 0.62);
+  --line: rgb(255 255 255 / 0.14); --surface-2: rgb(255 255 255 / 0.08);
+  --accent: color-mix(in srgb, var(--sb-accent) 28%, #ffffff); --accent-soft: rgb(255 255 255 / 0.14);
+}
+:root[data-style='classic'][data-theme='dark'] .auth-root > div > section:first-child {
+  background: color-mix(in srgb, var(--sb-accent) 18%, var(--surface)); box-shadow: 0 0 0 1px var(--line);
 }
 @media (max-width: 1023px) { :root[data-style='classic'] .auth-root > div > section:first-child { display: none !important; } }
-:root[data-style='classic'] .auth-root > div > section:first-child h1::after { content: ''; display: block; width: 3.5rem; height: 2px; margin-top: 1.4rem; background: #c9a46a; }
-:root[data-style='classic'] .auth-gradient-text { background: none; -webkit-text-fill-color: currentColor; color: #c9a46a; animation: none; }
-:root[data-style='classic'] .auth-eyebrow { background: transparent; color: #c9a46a; box-shadow: inset 0 0 0 1px rgb(201 164 106 / 0.45); letter-spacing: 0.08em; }
-:root[data-style='classic'] .auth-card { background: var(--surface) !important; box-shadow: 0 0 0 1px var(--line), 0 24px 48px -28px rgb(28 25 23 / 0.35) !important; backdrop-filter: none; }
-
-/* the brand: "Bot" in gold rather than Modern's blue; the welcome's label sized to its words */
-:root[data-style='classic'] .brand-bot { color: var(--gold); background: none; -webkit-text-fill-color: currentColor; }
+:root[data-style='classic'] .auth-gradient-text { background: none; -webkit-text-fill-color: currentColor; color: var(--accent); animation: none; }
+:root[data-style='classic'] .auth-eyebrow { background: rgb(255 255 255 / 0.1); color: #ffffff; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2); }
 :root[data-style='classic'] .auth-root > div > section:first-child .auth-eyebrow { align-self: flex-start; }
-/* the bot's badge: gold mark on deep navy in both themes (gold on gold vanished in dark) */
-:root[data-style='classic'] .home-bot-badge { background: var(--navy-deep); color: var(--gold); box-shadow: inset 0 0 0 1px rgb(201 164 106 / 0.35); }
+:root[data-style='classic'] .auth-card { background: var(--surface) !important; box-shadow: var(--cl-panel), var(--elev-3) !important; backdrop-filter: none; }
+
+/* the brand: "Bot" in the accent, without Modern's moving sheen */
+:root[data-style='classic'] .brand-bot { color: var(--accent); background: none; -webkit-text-fill-color: currentColor; animation: none; }

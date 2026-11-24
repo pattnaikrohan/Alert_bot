@@ -1,0 +1,212 @@
+/* "Refresh everything" scene (RefreshScene.tsx): an AI core around the bot. Transform / opacity animations only,
+   plus one backdrop-filter for the blur. */
+.rs-root {
+  --rs-c1: var(--accent);
+  --rs-c2: #4fe6ff;
+  --core: min(27rem, 52vh);
+  position: fixed; inset: 0; z-index: 90; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--canvas) 62%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+  backdrop-filter: blur(22px) saturate(1.2);
+  animation: rs-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+:root[data-theme='light'] .rs-root { --rs-c2: #0e9fc0; }
+.rs-root.rs-done { --rs-c1: var(--good); --rs-c2: #8ef0b5; }
+.rs-root.rs-problems.rs-done { --rs-c1: var(--warning); --rs-c2: #ffd27a; }
+:root[data-theme='light'] .rs-root.rs-done { --rs-c2: #1f9d55; }
+:root[data-theme='light'] .rs-root.rs-problems.rs-done { --rs-c2: #c98a0b; }
+@keyframes rs-in { from { opacity: 0; -webkit-backdrop-filter: blur(0) saturate(1); backdrop-filter: blur(0) saturate(1); } }
+
+/* leaving: the scene drifts toward you and dissolves while the blur melts away */
+.rs-leaving { animation: rs-out 0.8s cubic-bezier(0.65, 0, 0.35, 1) both; }
+.rs-leaving .rs-scene, .rs-leaving .rs-caption { animation: rs-zoom-away 0.8s cubic-bezier(0.65, 0, 0.35, 1) both; }
+@keyframes rs-out { to { opacity: 0; -webkit-backdrop-filter: blur(0) saturate(1); backdrop-filter: blur(0) saturate(1); } }
+@keyframes rs-zoom-away { to { transform: scale(1.12); filter: blur(6px); opacity: 0; } }
+
+.rs-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(42rem 30rem at 50% 44%, color-mix(in srgb, var(--rs-c1) 18%, transparent), transparent 70%),
+    radial-gradient(ellipse at center, transparent 45%, color-mix(in srgb, var(--canvas) 70%, transparent) 100%);
+  transition: background 0.6s;
+}
+
+/* perspective floor: the grid rushes toward you while walking, drifts otherwise */
+.rs-floor {
+  position: absolute; left: -50%; right: -50%; bottom: 0; height: 75vh; pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--rs-c1) 70%, transparent) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, color-mix(in srgb, var(--rs-c1) 70%, transparent) 1.5px, transparent 1.5px);
+  background-size: 72px 72px;
+  transform: perspective(600px) rotateX(72deg); transform-origin: 50% 100%;
+  mask-image: radial-gradient(ellipse 45% 100% at 50% 100%, #000 10%, rgb(0 0 0 / 0.4) 55%, transparent 80%);
+  opacity: 0.45;
+  animation: rs-floor 4s linear infinite;
+  transition: opacity 0.6s;
+}
+.rs-walk .rs-floor { animation-duration: 0.6s; opacity: 0.75; }
+@keyframes rs-floor { to { background-position: 0 72px; } }
+
+/* ── the core ── */
+.rs-scene { position: relative; animation: rs-scene-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes rs-scene-in { from { opacity: 0; transform: scale(0.86) translateY(16px); filter: blur(8px); } }
+.rs-core { position: relative; width: var(--core); height: var(--core); transform-style: preserve-3d; perspective: 1100px; }
+
+.rs-halo {
+  position: absolute; inset: 18%; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--rs-c1) 42%, transparent), transparent 68%);
+  filter: blur(18px); animation: rs-breathe 3.2s ease-in-out infinite;
+}
+@keyframes rs-breathe { 50% { transform: scale(1.12); opacity: 0.75; } }
+
+.rs-rings { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.rs-ring { fill: none; transform-origin: 200px 200px; transition: stroke 0.6s; }
+.rs-ring-ticks { stroke: color-mix(in srgb, var(--rs-c1) 40%, transparent); stroke-width: 6; stroke-dasharray: 1.2 10.7; animation: rs-rot 40s linear infinite; }
+.rs-ring-arc { stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 520 536; animation: rs-rot 7s linear infinite; filter: drop-shadow(0 0 6px var(--rs-c1)); }
+.rs-ring-dash { stroke: color-mix(in srgb, var(--rs-c2) 35%, transparent); stroke-width: 1; stroke-dasharray: 3 7; animation: rs-rot 22s linear infinite reverse; }
+.rs-ring-arc2 { stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 160 644; animation: rs-rot 4.5s linear infinite reverse; opacity: 0.8; }
+@keyframes rs-rot { to { transform: rotate(360deg); } }
+.rs-think .rs-ring-arc { animation-duration: 3s; }
+.rs-think .rs-ring-arc2 { animation-duration: 2s; }
+
+/* check: a radar sweep turns inside the rings */
+.rs-sweep {
+  fill: color-mix(in srgb, var(--rs-c1) 22%, transparent); transform-origin: 200px 200px; opacity: 0;
+  transition: opacity 0.5s; mask: radial-gradient(circle at 200px 200px, transparent 30%, #000 100%);
+}
+.rs-check .rs-sweep { opacity: 1; animation: rs-rot 1.6s linear infinite; }
+
+/* the orbit: glass chips circling on a tilted plane, passing behind and in front of the bot */
+.rs-orbit-plane {
+  position: absolute; left: 50%; top: 56%; width: 0; height: 0;
+  transform-style: preserve-3d; transform: rotateX(72deg);
+}
+.rs-orbit-spin { transform-style: preserve-3d; animation: rs-spin 16s linear infinite; }
+.rs-walk .rs-orbit-spin { animation-duration: 6s; }
+@keyframes rs-spin { to { transform: rotateZ(360deg); } }
+.rs-chip-arm {
+  position: absolute; transform-style: preserve-3d;
+  transform: rotateZ(var(--a)) translateX(calc(var(--core) * 0.47));
+}
+.rs-chip {
+  position: absolute; left: -1.25rem; top: -1.25rem; width: 2.5rem; height: 2.5rem; border-radius: 0.875rem;
+  display: grid; place-items: center;
+  color: var(--rs-c2);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface) 70%, transparent), color-mix(in srgb, var(--surface) 35%, transparent));
+  border: 1px solid color-mix(in srgb, var(--rs-c1) 45%, transparent);
+  box-shadow: 0 0 18px -4px var(--rs-c1), inset 0 1px 0 rgb(255 255 255 / 0.12);
+  /* undo the plane's tilt and the spin so every chip faces you */
+  animation: rs-face 16s linear infinite;
+  transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;
+}
+.rs-walk .rs-chip { animation-duration: 6s; }
+@keyframes rs-face {
+  from { transform: rotateZ(calc(-1 * var(--a))) rotateX(-72deg); }
+  to   { transform: rotateZ(calc(-1 * var(--a) - 360deg)) rotateX(-72deg); }
+}
+.rs-chip-icon, .rs-chip-ok { grid-area: 1 / 1; width: 1.125rem; height: 1.125rem; transition: opacity 0.3s, transform 0.3s; }
+.rs-chip-ok { opacity: 0; transform: scale(0.4); color: var(--good); }
+/* check: each chip is ticked off in turn */
+.rs-check .rs-chip, .rs-study .rs-chip, .rs-done .rs-chip { animation-name: rs-face; }
+.rs-check .rs-chip-arm .rs-chip-icon { animation: rs-tick-icon 0.01s calc(var(--i) * 0.22s) both; }
+.rs-check .rs-chip-arm .rs-chip-ok { animation: rs-tick 0.35s calc(var(--i) * 0.22s) cubic-bezier(0.34, 1.6, 0.64, 1) both; }
+.rs-check .rs-chip-arm .rs-chip { box-shadow: 0 0 22px -2px var(--good), inset 0 1px 0 rgb(255 255 255 / 0.12); border-color: color-mix(in srgb, var(--good) 60%, transparent); transition-delay: calc(var(--i) * 0.22s); }
+.rs-study .rs-chip-icon, .rs-done .rs-chip-icon { opacity: 0; }
+.rs-study .rs-chip-ok, .rs-done .rs-chip-ok { opacity: 1; transform: none; }
+@keyframes rs-tick-icon { to { opacity: 0; } }
+@keyframes rs-tick { to { opacity: 1; transform: none; } }
+
+/* the bot: hovers in the core; its gestures (jog, chin, lookout, tablet) come from RobotSVG */
+.rs-bot { position: absolute; left: 50%; top: 50%; width: 60%; aspect-ratio: 680 / 780; transform: translate(-50%, -54%) translateZ(1px); }
+.rs-bot-motion { width: 100%; height: 100%; animation: rs-hover 3.4s ease-in-out infinite; }
+.rs-bot-motion .robot-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 18px 24px rgb(0 0 0 / 0.35)); }
+@keyframes rs-hover { 50% { transform: translateY(-4%); } }
+.rs-walk .rs-bot-motion { animation: none; }
+
+/* think: sparks fire from the head along little synapses */
+.rs-synapse { position: absolute; left: 22%; right: 22%; top: 3%; width: 56%; overflow: visible; opacity: 0; transition: opacity 0.4s; }
+.rs-think .rs-synapse { opacity: 1; }
+.rs-syn-line { fill: none; stroke: var(--rs-c2); stroke-width: 1.2; stroke-linecap: round; stroke-dasharray: 0.25 1; stroke-dashoffset: 0.25;
+  filter: drop-shadow(0 0 3px var(--rs-c2)); }
+.rs-think .rs-syn-line { animation: rs-fire 1.1s calc(var(--i) * 0.17s) ease-in infinite; }
+@keyframes rs-fire { from { stroke-dashoffset: 0.25; } to { stroke-dashoffset: -1; } }
+.rs-syn-node { fill: var(--rs-c2); opacity: 0.25; filter: drop-shadow(0 0 4px var(--rs-c2)); transform-box: fill-box; transform-origin: center; }
+.rs-think .rs-syn-node { animation: rs-node 1.1s calc(var(--i) * 0.17s + 0.5s) ease-out infinite; }
+@keyframes rs-node { 0% { opacity: 0.25; transform: scale(1); } 30% { opacity: 1; transform: scale(1.8); } 100% { opacity: 0.25; transform: scale(1); } }
+
+/* study: a scan line sweeps over the bot, holographic panels read data beside it */
+.rs-scanline {
+  position: absolute; left: 24%; right: 24%; top: 14%; height: 2px; opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--rs-c2), transparent);
+  box-shadow: 0 0 16px 3px color-mix(in srgb, var(--rs-c2) 55%, transparent), 0 -18px 30px -6px color-mix(in srgb, var(--rs-c2) 22%, transparent);
+}
+.rs-study .rs-scanline { opacity: 1; animation: rs-scan 1.5s ease-in-out infinite alternate; }
+@keyframes rs-scan { to { transform: translateY(calc(var(--core) * 0.62)); } }
+.rs-holo {
+  position: absolute; top: 30%; width: 22%; height: 38%; padding: 0.6rem; border-radius: 0.75rem; opacity: 0;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--rs-c2) 14%, transparent), transparent);
+  border: 1px solid color-mix(in srgb, var(--rs-c2) 35%, transparent);
+  box-shadow: 0 0 24px -8px var(--rs-c2);
+  transition: opacity 0.5s, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rs-holo { width: 26%; height: 34%; top: 32%; }
+.rs-holo-left { left: -34%; transform: perspective(500px) rotateY(28deg) translateX(-16px); }
+.rs-holo-right { right: -34%; transform: perspective(500px) rotateY(-28deg) translateX(16px); }
+.rs-study .rs-holo-left { opacity: 1; transform: perspective(500px) rotateY(22deg); }
+.rs-study .rs-holo-right { opacity: 1; transform: perspective(500px) rotateY(-22deg); }
+.rs-holo-left { display: flex; flex-direction: column; justify-content: space-around; }
+.rs-holo-left i { display: block; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--rs-c2) 70%, transparent); transform-origin: left; }
+.rs-study .rs-holo-left i { animation: rs-row 1.2s ease-in-out infinite alternate; }
+.rs-holo-left i:nth-child(2n) { width: 70%; animation-delay: 0.2s; }
+.rs-holo-left i:nth-child(3n) { width: 85%; animation-delay: 0.4s; }
+@keyframes rs-row { from { transform: scaleX(0.3); opacity: 0.4; } to { transform: scaleX(1); opacity: 1; } }
+.rs-holo-right { display: flex; align-items: flex-end; justify-content: space-between; gap: 4px; }
+.rs-holo-right b { flex: 1; height: 30%; border-radius: 2px 2px 0 0; background: linear-gradient(to top, color-mix(in srgb, var(--rs-c2) 25%, transparent), var(--rs-c2)); transform-origin: bottom; }
+.rs-study .rs-holo-right b { animation: rs-bar 0.9s ease-in-out infinite alternate; }
+.rs-holo-right b:nth-child(1) { height: 45%; }
+.rs-holo-right b:nth-child(2) { height: 80%; animation-delay: 0.15s; }
+.rs-holo-right b:nth-child(3) { height: 60%; animation-delay: 0.3s; }
+.rs-holo-right b:nth-child(4) { height: 95%; animation-delay: 0.45s; }
+.rs-holo-right b:nth-child(5) { height: 50%; animation-delay: 0.6s; }
+@keyframes rs-bar { from { transform: scaleY(0.35); } to { transform: scaleY(1); } }
+
+/* done: the core flashes, the rings burst outward */
+.rs-flash { position: absolute; inset: 20%; border-radius: 50%; opacity: 0; background: radial-gradient(circle, #fff, color-mix(in srgb, var(--rs-c1) 60%, transparent) 40%, transparent 70%); }
+.rs-done .rs-flash { animation: rs-flash 1s ease-out both; }
+@keyframes rs-flash { 0% { opacity: 0; transform: scale(0.4); } 15% { opacity: 0.9; } 100% { opacity: 0; transform: scale(2.4); } }
+.rs-done .rs-rings { animation: rs-burst 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes rs-burst { 0% { transform: scale(1); } 35% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+/* ── caption: big phase word, one line, four segments ── */
+.rs-caption { position: relative; margin-top: 0.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; width: min(34rem, 90vw); }
+.rs-caption-text { animation: rs-text-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes rs-text-in { from { opacity: 0; transform: translateY(10px); filter: blur(6px); } }
+.rs-title {
+  display: inline-flex; align-items: baseline; gap: 0.15rem;
+  font-size: clamp(1.75rem, 4.2vh, 2.5rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.1;
+  background: linear-gradient(100deg, var(--ink) 20%, var(--rs-c2) 50%, var(--ink) 80%); background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: rs-shine 2.6s linear infinite;
+}
+@keyframes rs-shine { from { background-position: 110% 0; } to { background-position: -110% 0; } }
+.rs-done .rs-title { background: none; color: var(--good-ink); animation: none; }
+.rs-problems.rs-done .rs-title { color: var(--warning-ink); }
+.rs-ellipsis { display: inline-flex; gap: 4px; margin-left: 0.2rem; }
+.rs-ellipsis i { width: 6px; height: 6px; border-radius: 50%; background: var(--rs-c2); animation: think-dot 1s ease-in-out infinite; }
+.rs-ellipsis i:nth-child(2) { animation-delay: 0.15s; }
+.rs-ellipsis i:nth-child(3) { animation-delay: 0.3s; }
+.rs-line { margin-top: 0.4rem; font-size: 0.875rem; color: var(--ink-2); }
+
+.rs-segments { display: flex; gap: 0.5rem; width: min(18rem, 70vw); margin-top: 1.1rem; }
+.rs-seg { position: relative; flex: 1; height: 4px; overflow: hidden; border-radius: 4px; background: color-mix(in srgb, var(--ink) 12%, transparent); }
+.rs-seg i { position: absolute; inset: 0; border-radius: 4px; transform: scaleX(0); transform-origin: left;
+  background: linear-gradient(90deg, var(--rs-c1), var(--rs-c2)); box-shadow: 0 0 10px var(--rs-c1); }
+.rs-seg-done i { transform: scaleX(1); transition: transform 0.35s ease-out; }
+.rs-seg-now i { animation: rs-fill var(--step-ms) linear both; }
+@keyframes rs-fill { from { transform: scaleX(0); } to { transform: scaleX(0.92); } }
+.rs-esc { margin-top: 0.9rem; font-size: 0.6875rem; color: var(--ink-3); letter-spacing: 0.02em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-root *, .rs-root { animation-duration: 0.01s !important; animation-iteration-count: 1 !important; }
+}

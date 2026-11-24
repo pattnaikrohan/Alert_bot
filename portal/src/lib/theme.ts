@@ -1,14 +1,15 @@
-// Appearance: the style (modern or classic), light / dark, and a shade per theme (modern only; same sets as Team
-// Tesseract). Stored on this device (and the style with the account, for other devices); public/theme-init.js applies
+// Appearance: the style (modern or classic), light / dark, and a shade per theme (both styles use the shades; same sets
+// as Team Tesseract). Stored on this device (and the style with the account, for other devices); public/theme-init.js applies
 // it before first paint.
 import { useSyncExternalStore } from "react";
 
 export type Theme = "dark" | "light";
-/** Modern: the floating dock, gradients and motion. Classic: calm and formal, for management: a side menu, flat panels. */
+/** Modern: the floating dock, gradients and motion. Classic: calm and formal, for management: a side menu, flat panels,
+ * in the same colours. */
 export type Style = "modern" | "classic";
 export const STYLES: { id: Style; label: string; hint: string }[] = [
   { id: "modern", label: "Modern", hint: "Floating dock, rich colour and motion" },
-  { id: "classic", label: "Classic", hint: "Calm and formal: side menu, flat panels, for management" },
+  { id: "classic", label: "Classic", hint: "Calm and professional: side menu, flat panels, same colours" },
 ];
 export type DarkShade = "ocean" | "midnight" | "champagne" | "graphite" | "emerald" | "aurora";
 export type LightShade = "daylight" | "sand" | "mint" | "lavender" | "rose";

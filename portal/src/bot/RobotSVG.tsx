@@ -34,8 +34,43 @@ const HOLD = { x0: 418, y0: 520, a0: 80, x1: 440, y1: 322, a1: -20 };
 type Face = Mood | "sleep";
 export interface Point { x: number; y: number }
 
+/** A whole-body pose for a piece of work (the refresh scene): the megaphone is put away and both hands act. */
+export type Gesture = "walk" | "think" | "check" | "study";
+interface Pose {
+  l: [number, number, number]; r: [number, number, number];  // left / right hand: x, y, angle
+  gx: number; gy: number;                                      // where the eyes look (-1..1)
+  tilt: number; hdy: number;                                   // head tilt (deg) and drop
+  bounce: number; sway: number;                                // body bounce (px up) and sway (deg)
+  squint: number;                                              // eye opening (1 = open)
+}
+/** The pose for a gesture at time t (seconds). */
+function gesturePose(g: Gesture, t: number): Pose {
+  switch (g) {
+    case "walk": {
+      // jogging: arms pump in opposition, the body bounces twice per stride, eyes on the road ahead
+      const w = t * 9, s = Math.sin(w);
+      return { l: [178 - s * 12, 488 - s * 44, 18 + s * 30], r: [422 + s * 12, 488 + s * 44, 72 + s * 30],
+        gx: 0, gy: -0.25, tilt: Math.sin(w * 2) * 2.5, hdy: 0, bounce: Math.abs(Math.sin(w)) * 16, sway: s * 3, squint: 1 };
+    }
+    case "think":
+      // hand on the chin, tapping; the other arm folded across; head tilted, eyes up and to the side
+      return { l: [244, 468, 74], r: [352, 344 + Math.sin(t * 5) * 4, 52],
+        gx: 0.55 + Math.sin(t * 0.8) * 0.15, gy: -0.8, tilt: -9 + Math.sin(t * 1.1) * 2, hdy: 0, bounce: 0, sway: -2, squint: 0.7 };
+    case "check": {
+      // a lookout: one hand shading the eyes, the head scanning; the other hand points and taps
+      const scan = Math.sin(t * 2.2);
+      return { l: [262, 150, 104], r: [474 + Math.max(0, Math.sin(t * 7)) * 12, 410 - scan * 36, 170],
+        gx: scan * 0.95, gy: 0.05, tilt: scan * 4, hdy: 0, bounce: 0, sway: scan * 1.5, squint: 0.55 };
+    }
+    case "study":
+      // head bowed over a holographic tablet held in both hands, eyes reading across it
+      return { l: [196, 496, 28], r: [404, 496, 62],
+        gx: Math.sin(t * 1.4) * 0.4, gy: 0.9, tilt: 3 + Math.sin(t * 0.9) * 1.5, hdy: 10, bounce: 0, sway: 0, squint: 0.8 };
+  }
+}
+
 type Key = "bot" | "shadow" | "head" | "face" | "eyes" | "brows" | "gloss" | "earL" | "earR" | "antenna" | "handL" | "handR"
-  | "waves" | "mouth" | "body" | "beaconGlow" | "chestGlow" | "beam" | "rim" | "cheeks" | "emitter";
+  | "waves" | "mouth" | "body" | "beaconGlow" | "chestGlow" | "beam" | "rim" | "cheeks" | "emitter" | "mega" | "tablet";
 
 function Eyes({ mood }: { mood: Face }) {
   if (mood === "sleep") {
@@ -111,17 +146,19 @@ interface RobotProps {
   cheerSignal?: number;
   /** Working on something (running checks, thinking about a question): eyes search, beacon races. */
   thinking?: boolean;
+  /** A whole-body pose (megaphone put away) for a piece of work; null for the usual behaviour. */
+  gesture?: Gesture | null;
 }
 
-function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asleep = false, expression, cheerSignal = 0, thinking = false }: RobotProps) {
+function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asleep = false, expression, cheerSignal = 0, thinking = false, gesture = null }: RobotProps) {
   const id = useId().replace(/:/g, "");
   const u = (name: string) => `url(#${id}-${name})`;
   const svg = useRef<SVGSVGElement>(null);
   const refs = useRef<Partial<Record<Key, SVGElement | null>>>({});
   const particles = useRef<(SVGCircleElement | null)[]>([]);
   const set = (k: Key) => (el: SVGElement | null) => { refs.current[k] = el; };
-  const live = useRef({ mood, speaking, poke: pokeSignal, pointAt, asleep, cheer: cheerSignal, thinking });
-  Object.assign(live.current, { mood, speaking, pointAt, asleep, thinking });
+  const live = useRef({ mood, speaking, poke: pokeSignal, pointAt, asleep, cheer: cheerSignal, thinking, gesture });
+  Object.assign(live.current, { mood, speaking, pointAt, asleep, thinking, gesture });
   const face: Face = asleep ? "sleep" : expression ?? mood;
   const L = LIGHT[mood];
   const F = FACE[face === "sleep" ? "ok" : face];
@@ -136,7 +173,8 @@ function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asl
     const ptr = { x: 0, y: 0, sx: 0, sy: 0, lastMove: 0 };
     const st = { raise: POSE[live.current.mood], blink: 1, nextBlink: 1.8, blinkT: -1, waveT: -1, nextWave: 3.5, hopT: -1,
       lastPoke: live.current.poke, talk: 0, swing: 0, swingV: 0, nextGlance: 5, glanceT: -1, sleep: 0, cheerT: -1,
-      lastCheer: live.current.cheer, lx: 168, ly: 500, la: 18, rx: HOLD.x0, ry: HOLD.y0, ra: HOLD.a0 };
+      lastCheer: live.current.cheer, lx: 168, ly: 500, la: 18, rx: HOLD.x0, ry: HOLD.y0, ra: HOLD.a0,
+      mega: 1, tab: 0, tilt: 0, hdy: 0, bounce: 0, sway: 0, squint: 1, gzx: 0, gzy: 0 };
     const seeds = Array.from({ length: PARTICLES }, (_, i) => ({ off: i / PARTICLES, x: (Math.random() - 0.5) * 230, s: 0.5 + Math.random() * 0.7 }));
 
     const onMove = (e: PointerEvent) => {
@@ -180,7 +218,19 @@ function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asl
         gy = Math.max(-1, Math.min(1, (Lv.pointAt.y - (box.top + box.height * 0.33)) / (window.innerHeight * 0.45)));
       }
       st.sleep = ease(st.sleep, Lv.asleep ? 1 : 0, 2.5);
-      const search = Lv.thinking && !reduced ? Math.sin(t * 3.2) * 0.85 : 0;
+      // a gesture takes over the eyes, head, body and both hands (not while cheering: the megaphone comes back for that)
+      const G = Lv.gesture && st.cheerT < 0 ? gesturePose(Lv.gesture, t) : null;
+      if (G) { gx = G.gx; gy = G.gy; }
+      st.tilt = ease(st.tilt, G ? G.tilt * amp : 0, 6);
+      st.hdy = ease(st.hdy, G ? G.hdy : 0, 6);
+      st.bounce = ease(st.bounce, G ? G.bounce * amp : 0, 18);
+      st.sway = ease(st.sway, G ? G.sway * amp : 0, 10);
+      st.mega = ease(st.mega, G ? 0 : 1, 7);
+      st.squint = ease(st.squint, G ? G.squint : 1, 8);
+      st.gzx = ease(st.gzx, G ? G.gx * 12 : 0, 6);   // a gesture's gaze moves the face further than the pointer does
+      st.gzy = ease(st.gzy, G ? G.gy * 12 : 0, 6);
+      st.tab = ease(st.tab, Lv.gesture === "study" && st.cheerT < 0 ? 1 : 0, 6);
+      const search = Lv.thinking && !G && !reduced ? Math.sin(t * 3.2) * 0.85 : 0;
       ptr.sx = ease(ptr.sx, (gx + glanceX * 0.55 + dart + search) * (1 - st.sleep), 5);
       ptr.sy = ease(ptr.sy, gy * (1 - st.sleep) + st.sleep * 0.3, 5);
       const px = ptr.sx * amp;
@@ -201,14 +251,15 @@ function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asl
         if (p >= 1) st.hopT = -1;
       }
       const shake = Lv.mood === "critical" && !reduced ? Math.sin(t * 38) * 0.6 : 0;
-      T("bot", `translate(${shake.toFixed(2)} ${y.toFixed(2)}) translate(300 600) scale(${sqX.toFixed(4)} ${sqY.toFixed(4)}) rotate(${(wiggle + px * 2.5).toFixed(2)}) translate(-300 -600)`);
+      y -= st.bounce;
+      T("bot", `translate(${shake.toFixed(2)} ${y.toFixed(2)}) translate(300 600) scale(${sqX.toFixed(4)} ${sqY.toFixed(4)}) rotate(${(wiggle + px * 2.5 + st.sway).toFixed(2)}) translate(-300 -600)`);
       const lift = (-y + 9) / 78;
       T("shadow", `translate(300 708) scale(${(1 - lift * 0.22).toFixed(3)} 1) translate(-300 -708)`);
       O("shadow", 0.9 - lift * 0.4);
       O("beam", (0.55 + 0.25 * Math.sin(t * 2.3)) * (1 - lift * 0.5));
 
       // head turns toward the pointer: layers move by depth
-      T("head", `rotate(${(px * 5 + st.sleep * 7).toFixed(2)} 300 360) translate(${(px * 7).toFixed(2)} ${(py * 4 + st.sleep * 6).toFixed(2)})`);
+      T("head", `rotate(${(px * 5 + st.sleep * 7 + st.tilt).toFixed(2)} 300 360) translate(${(px * 7).toFixed(2)} ${(py * 4 + st.sleep * 6 + st.hdy).toFixed(2)})`);
       T("face", `translate(${(px * 11).toFixed(2)} ${(py * 7).toFixed(2)})`);
       T("gloss", `translate(${(-px * 9).toFixed(2)} ${(-py * 5).toFixed(2)})`);
       T("earL", `translate(${(-px * 5 + Math.max(0, px) * 6).toFixed(2)} 0)`);
@@ -223,7 +274,7 @@ function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asl
         st.blink = p < 1 ? 1 - Math.sin(p * Math.PI) * 0.9 : 1;
         if (p >= 1) { st.blinkT = -1; st.nextBlink = t + 2.2 + Math.random() * 3.2; }
       }
-      T("eyes", `translate(${(px * 6).toFixed(2)} ${(py * 4 + 240).toFixed(2)}) scale(1 ${st.blink.toFixed(3)}) translate(0 -240)`);
+      T("eyes", `translate(${(px * 6 + st.gzx).toFixed(2)} ${(py * 4 + st.gzy + 240).toFixed(2)}) scale(1 ${(st.blink * st.squint).toFixed(3)}) translate(0 -240)`);
       const browLift = Lv.mood === "warning" ? Math.sin(t * 2.1) * 2 : 0;
       T("brows", `translate(${(px * 6).toFixed(2)} ${(py * 4 + (1 - st.blink) * 4 + browLift).toFixed(2)})`);
 
@@ -231,7 +282,7 @@ function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asl
       const talking = Lv.speaking ? 0.5 + 0.5 * Math.abs(Math.sin(t * 12) * Math.sin(t * 6.7)) : 0;
       st.talk = ease(st.talk, talking, 16);
       const open = Lv.mood === "critical" ? 0.75 + st.talk * 0.5 : 1 + st.talk * 0.9;
-      T("mouth", `translate(${(px * 6).toFixed(2)} ${(py * 4).toFixed(2)}) translate(300 296) scale(${(1 + st.talk * 0.12).toFixed(3)} ${open.toFixed(3)}) translate(-300 -296)`);
+      T("mouth", `translate(${(px * 6 + st.gzx * 0.6).toFixed(2)} ${(py * 4 + st.gzy * 0.5).toFixed(2)}) translate(300 296) scale(${(1 + st.talk * 0.12).toFixed(3)} ${open.toFixed(3)}) translate(-300 -296)`);
       O("cheeks", Lv.mood === "ok" && !Lv.asleep ? 0.55 + 0.15 * Math.sin(t * 1.6) : 0);
 
       // antenna spring
@@ -263,7 +314,12 @@ function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asl
       let hy = HOLD.y0 + (HOLD.y1 - HOLD.y0) * r;
       let ha = HOLD.a0 + (HOLD.a1 - HOLD.a0) * r + (Lv.mood === "critical" ? Math.sin(t * 7) * 2.5 * amp : 0);
       if (cheering) { hx = 452; hy = 292; ha = -58 + Math.sin(t * 10) * 7 * amp; }
+      else if (G) { [hx, hy, ha] = G.r; }
       st.rx = ease(st.rx, hx, 9); st.ry = ease(st.ry, hy, 9); st.ra = ease(st.ra, ha, 12);
+      T("mega", `scale(${(0.84 * (0.2 + 0.8 * st.mega)).toFixed(3)})`);
+      O("mega", st.mega);
+      T("tablet", `translate(300 488) scale(${(0.6 + 0.4 * st.tab).toFixed(3)}) translate(-300 -488)`);
+      O("tablet", st.tab);
       T("handR", `translate(${st.rx.toFixed(2)} ${(st.ry + Math.sin(t * 1.6 + 0.8) * 4 * amp).toFixed(2)}) rotate(${st.ra.toFixed(2)})`);
       const shout = Lv.mood === "critical" ? (Lv.speaking ? 1 : 0.8) : Lv.mood === "warning" && Lv.speaking ? 0.5 : 0;
       const w = el("waves");
@@ -274,7 +330,7 @@ function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asl
       }
 
       // left hand floats at the side and waves now and then when all is well
-      if (Lv.mood === "ok" && !Lv.asleep && !Lv.pointAt && t > st.nextWave && st.waveT < 0 && !reduced) st.waveT = 0;
+      if (Lv.mood === "ok" && !Lv.asleep && !Lv.pointAt && !G && t > st.nextWave && st.waveT < 0 && !reduced) st.waveT = 0;
       let lx = 168, ly = 500, la = 18;
       if (Lv.mood === "critical") { lx = 186; ly = 470; la = -10 + Math.sin(t * 7 + 1) * 4 * amp; }
       if (st.waveT >= 0) {
@@ -299,6 +355,8 @@ function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asl
         lx = 146; ly = 318; la = -18 + Math.sin(t * 14) * 26 * amp;
       } else if (Lv.asleep) {
         lx = 178; ly = 522; la = 28;
+      } else if (G) {
+        [lx, ly, la] = G.l;
       }
       st.lx = ease(st.lx, lx, 9); st.ly = ease(st.ly, ly, 9); st.la = ease(st.la, la, 14);
       T("handL", `translate(${st.lx.toFixed(2)} ${(st.ly + Math.sin(t * 1.6 + 2.2) * 5 * amp).toFixed(2)}) rotate(${st.la.toFixed(2)})`);
@@ -476,11 +534,28 @@ function RobotSVGInner({ mood, speaking, pokeSignal, onPoke, pointAt = null, asl
           </g>
         )}
 
+        {/* ── holographic tablet (study gesture): held in both hands, its light reaching up to the face ── */}
+        <g ref={set("tablet")} opacity="0" style={{ pointerEvents: "none" }}>
+          <path d="M226 440 L374 440 L346 330 L254 330 Z" fill={u("faceGlow")} opacity="0.6" />
+          <rect x="206" y="432" width="188" height="112" rx="16" fill={u("screen")} opacity="0.92" />
+          <rect x="206" y="432" width="188" height="112" rx="16" fill="none" style={{ stroke: F.c }} strokeWidth="3" />
+          <rect x="222" y="446" width="60" height="8" rx="4" style={{ fill: F.c }} />
+          <circle cx="372" cy="450" r="5" style={{ fill: F.c }} opacity="0.7" />
+          <g style={{ stroke: F.c }} strokeWidth="4" strokeLinecap="round" opacity="0.75">
+            <path d="M222 472 H292" /><path d="M222 488 H282" /><path d="M222 504 H298" /><path d="M222 520 H272" />
+          </g>
+          <g style={{ fill: F.c }}>
+            <rect x="312" y="500" width="12" height="28" rx="3" opacity="0.55" /><rect x="330" y="482" width="12" height="46" rx="3" />
+            <rect x="348" y="492" width="12" height="36" rx="3" opacity="0.8" /><rect x="366" y="470" width="12" height="58" rx="3" />
+          </g>
+          <rect x="206" y="432" width="188" height="112" rx="16" fill={u("glass")} opacity="0.55" />
+        </g>
+
         {/* ── hands: the left floats free, the right holds the megaphone ── */}
         <g ref={set("handL")} transform="translate(168 500) rotate(18)"><Hand u={u} mirror /></g>
 
         <g ref={set("handR")} transform={`translate(${HOLD.x0} ${HOLD.y0}) rotate(${HOLD.a0})`}>
-          <g transform="scale(0.84)">
+          <g ref={set("mega")} transform="scale(0.84)">
             <rect x="-7" y="-14" width="14" height="34" rx="6" fill={u("red")} />
             <rect x="2" y="-48" width="66" height="38" rx="16" fill={u("cylH")} />
             <rect x="2" y="-48" width="66" height="38" rx="16" fill={u("shade")} />
